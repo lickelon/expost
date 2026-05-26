@@ -1,17 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
     public sealed class RuleReconstructionPrototype : MonoBehaviour
     {
-        private static readonly string[] DirectionLabels = { "Cross", "Diagonal", "Horizontal", "Vertical", "AllAround" };
-        private static readonly string[] RangeLabels = { "One", "Two" };
-        private static readonly BoxColor[] AllColors = { BoxColor.Red, BoxColor.Blue, BoxColor.Green, BoxColor.Yellow };
+        private static readonly DirectionType[] DirectionOptions =
+        {
+            DirectionType.Cross,
+            DirectionType.Diagonal,
+            DirectionType.Horizontal,
+            DirectionType.Vertical,
+            DirectionType.AllAround
+        };
+
+        private static readonly RangeType[] RangeOptions =
+        {
+            RangeType.One,
+            RangeType.Two
+        };
+
+        private static readonly BoxColor[] AllColors =
+        {
+            BoxColor.Red,
+            BoxColor.Blue,
+            BoxColor.Green,
+            BoxColor.Yellow
+        };
 
         private readonly Dictionary<BoxColor, DirectionType> selectedDirections = new();
         private readonly Dictionary<BoxColor, RangeType> selectedRanges = new();
+        private readonly Dictionary<BoxColor, List<Button>> directionButtons = new();
+        private readonly Dictionary<BoxColor, List<Button>> rangeButtons = new();
+        private readonly List<BoardCellView> boardCells = new();
+
         private List<StageData> stages;
         private int stageIndex;
         private int appliedSourceCount;
@@ -21,27 +47,28 @@ namespace Expost.RuleReconstruction
         private HashSet<GridPosition> activeAffectedCells = new();
         private ValidationResult validationResult;
         private StageAnalysisResult stageAnalysis;
-        private float sidebarWidth;
-        private float targetCellSize;
-        private float panelGap;
-        private float buttonHeight;
-        private Vector2 sidebarScroll;
         private Coroutine runRoutine;
         private bool isRunning;
         private bool showResult;
         private bool showMismatch;
-        private GUIStyle titleStyle;
-        private GUIStyle bodyStyle;
-        private GUIStyle buttonStyle;
-        private GUIStyle cellStyle;
-        private GUIStyle redSourceStyle;
-        private GUIStyle blueSourceStyle;
-        private GUIStyle greenSourceStyle;
-        private GUIStyle yellowSourceStyle;
-        private GUIStyle affectedStyle;
-        private GUIStyle wrongStyle;
-        private GUIStyle clearStyle;
-        private GUIStyle panelStyle;
+        private Canvas canvas;
+        private RectTransform sidebar;
+        private RectTransform boardRoot;
+        private Text titleText;
+        private Text boardTitleText;
+        private Text progressText;
+        private Text statusText;
+        private Text analysisText;
+        private Font uiFont;
+
+        private readonly Color pageColor = new(0.18f, 0.29f, 0.47f);
+        private readonly Color panelColor = new(0.13f, 0.23f, 0.39f);
+        private readonly Color cellColor = new(0.16f, 0.17f, 0.19f);
+        private readonly Color selectedButtonColor = new(0.82f, 0.86f, 0.92f);
+        private readonly Color buttonColor = new(0.38f, 0.43f, 0.50f);
+        private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
+        private readonly Color wrongTextColor = new(1f, 0.86f, 0.20f);
+        private readonly Color clearTextColor = new(0.35f, 0.95f, 0.56f);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -69,6 +96,7 @@ namespace Expost.RuleReconstruction
             }
 
             stages = StageRepository.LoadStages();
+            uiFont = Font.CreateDynamicFontFromOSFont(new[] { "SF Pro", "Arial", "Helvetica" }, 18);
 
             foreach (var color in AllColors)
             {
@@ -76,164 +104,253 @@ namespace Expost.RuleReconstruction
                 selectedRanges[color] = RangeType.One;
             }
 
+            CreateCanvas();
+            BuildLayout();
             ResetDisplay();
         }
 
-        private void OnGUI()
+        private void CreateCanvas()
         {
-            EnsureInitialized();
-            UpdateLayoutMetrics();
-            EnsureStyles();
+            EnsureEventSystem();
 
-            GUILayout.BeginArea(new Rect(18f, 12f, Screen.width - 36f, Screen.height - 24f));
-            DrawHeader();
-            GUILayout.Space(8f);
-            GUILayout.BeginHorizontal();
-            DrawSidebar();
-            GUILayout.Space(panelGap);
-            DrawTargetPanel();
-            GUILayout.EndHorizontal();
-            GUILayout.EndArea();
+            var canvasObject = new GameObject("Rule Reconstruction Canvas");
+            canvasObject.transform.SetParent(transform, false);
+            canvas = canvasObject.AddComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvasObject.AddComponent<GraphicRaycaster>();
+
+            var scaler = canvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(960f, 540f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            var background = canvasObject.AddComponent<Image>();
+            background.color = pageColor;
         }
 
-        private void DrawHeader()
+        private static void EnsureEventSystem()
         {
-            GUILayout.BeginHorizontal();
-            GUILayout.Label($"Rule Reconstruction / {CurrentStage.Name}", titleStyle);
-            GUILayout.FlexibleSpace();
-
-            if (GUILayout.Button("Prev", buttonStyle, GUILayout.Width(90f), GUILayout.Height(buttonHeight)))
+            if (FindAnyObjectByType<EventSystem>() != null)
             {
-                MoveStage(-1);
+                return;
             }
 
-            if (GUILayout.Button("Next", buttonStyle, GUILayout.Width(90f), GUILayout.Height(buttonHeight)))
-            {
-                MoveStage(1);
-            }
-
-            GUILayout.EndHorizontal();
+            var eventSystem = new GameObject("EventSystem");
+            eventSystem.AddComponent<EventSystem>();
+            eventSystem.AddComponent<InputSystemUIInputModule>();
+            DontDestroyOnLoad(eventSystem);
         }
 
-        private void DrawSidebar()
+        private void BuildLayout()
         {
-            GUILayout.BeginVertical(panelStyle, GUILayout.Width(sidebarWidth), GUILayout.Height(Screen.height - 82f));
-            sidebarScroll = GUILayout.BeginScrollView(sidebarScroll, false, true);
+            ClearCanvasChildren();
+
+            var root = CreatePanel("Root", canvas.transform, pageColor);
+            Stretch(root, Vector2.zero, Vector2.one, new Vector2(18f, 12f), new Vector2(-18f, -12f));
+
+            titleText = CreateText("Title", root, string.Empty, 22, TextAnchor.MiddleLeft);
+            Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(0f, 0f));
+
+            var prevButton = CreateButton("PrevButton", root, "Prev", 16, () => MoveStage(-1));
+            Anchor(prevButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-160f, -34f), new Vector2(-84f, 0f));
+
+            var nextButton = CreateButton("NextButton", root, "Next", 16, () => MoveStage(1));
+            Anchor(nextButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-76f, -34f), new Vector2(0f, 0f));
+
+            sidebar = CreatePanel("Sidebar", root, panelColor);
+            Anchor(sidebar, new Vector2(0f, 0f), new Vector2(0.36f, 1f), new Vector2(0f, 0f), new Vector2(-10f, -46f));
+
+            var boardPanel = CreatePanel("BoardPanel", root, panelColor);
+            Anchor(boardPanel, new Vector2(0.36f, 0f), new Vector2(1f, 1f), new Vector2(10f, 0f), new Vector2(0f, -46f));
+
+            boardTitleText = CreateText("BoardTitle", boardPanel, string.Empty, 22, TextAnchor.MiddleLeft);
+            Anchor(boardTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -42f), new Vector2(-120f, -8f));
+
+            progressText = CreateText("Progress", boardPanel, string.Empty, 16, TextAnchor.MiddleRight);
+            Anchor(progressText.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-120f, -42f), new Vector2(-16f, -8f));
+
+            boardRoot = CreatePanel("Board", boardPanel, Color.clear);
+            Anchor(boardRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-230f, -230f), new Vector2(230f, 230f));
+
+            BuildSidebar();
+            BuildBoardCells();
+        }
+
+        private void BuildSidebar()
+        {
+            directionButtons.Clear();
+            rangeButtons.Clear();
+
+            foreach (Transform child in sidebar)
+            {
+                Destroy(child.gameObject);
+            }
+
+            var content = CreatePanel("SidebarContent", sidebar, Color.clear);
+            Stretch(content, Vector2.zero, Vector2.one, new Vector2(14f, 14f), new Vector2(-14f, -92f));
+
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 8f;
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = false;
+            layout.childForceExpandWidth = true;
 
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
-                DrawColorControls(color);
-                GUILayout.Space(10f);
+                AddRuleControls(content, color);
             }
 
-            DrawStageAnalysis();
+            analysisText = CreateText("StageAnalysis", content, string.Empty, 15, TextAnchor.MiddleLeft);
+            analysisText.rectTransform.sizeDelta = new Vector2(0f, 38f);
 
-            GUILayout.EndScrollView();
-            GUILayout.Space(8f);
-            DrawActionPanel();
-            GUILayout.EndVertical();
+            var actionRoot = CreatePanel("Actions", sidebar, Color.clear);
+            Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 14f), new Vector2(-14f, 82f));
+
+            var actionLayout = actionRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+            actionLayout.spacing = 6f;
+            actionLayout.childControlHeight = true;
+            actionLayout.childControlWidth = true;
+            actionLayout.childForceExpandHeight = false;
+            actionLayout.childForceExpandWidth = true;
+
+            CreateButton("RunButton", actionRoot, "Run", 17, StartRun).GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 36f);
+            CreateButton("ResetButton", actionRoot, "Reset", 17, ResetDisplay).GetComponent<RectTransform>().sizeDelta = new Vector2(0f, 36f);
+            statusText = CreateText("Status", actionRoot, string.Empty, 17, TextAnchor.MiddleLeft);
+            statusText.rectTransform.sizeDelta = new Vector2(0f, 28f);
         }
 
-        private void DrawTargetPanel()
+        private void AddRuleControls(Transform parent, BoxColor color)
         {
-            GUILayout.BeginVertical(panelStyle, GUILayout.ExpandWidth(true), GUILayout.Height(Screen.height - 82f));
-            GUILayout.BeginHorizontal();
-            GUILayout.Label(GetMainBoardTitle(), titleStyle);
-            GUILayout.FlexibleSpace();
-            GUILayout.Label(GetProgressText(), bodyStyle);
-            GUILayout.EndHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.BeginVertical();
-            DrawBoard(displayBoard, showMismatch ? CurrentStage.TargetBoard : null, targetCellSize);
-            GUILayout.EndVertical();
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-            GUILayout.FlexibleSpace();
-            GUILayout.EndVertical();
-        }
+            var label = CreateText($"{color}Label", parent, $"{color} Rule", 18, TextAnchor.MiddleLeft);
+            label.rectTransform.sizeDelta = new Vector2(0f, 24f);
 
-        private void DrawBoard(BoardState board, BoardState comparisonTarget, float size)
-        {
-            for (var y = board.Height - 1; y >= 0; y--)
+            var directionGrid = CreateGrid($"{color}Directions", parent, 2, new Vector2(116f, 30f), 6f);
+            directionButtons[color] = new List<Button>();
+            foreach (var direction in DirectionOptions)
             {
-                GUILayout.BeginHorizontal();
-
-                for (var x = 0; x < board.Width; x++)
+                var capturedDirection = direction;
+                var button = CreateButton($"{color}{direction}", directionGrid.transform, direction.ToString(), 13, () =>
                 {
-                    var style = GetCellStyle(board, comparisonTarget, x, y);
-                    GUILayout.Label(GetCellText(board.GetCell(x, y)), style, GUILayout.Width(size), GUILayout.Height(size));
+                    selectedDirections[color] = capturedDirection;
+                    ResetDisplay();
+                });
+                directionButtons[color].Add(button);
+            }
+
+            var rangeGrid = CreateGrid($"{color}Ranges", parent, 2, new Vector2(116f, 30f), 6f);
+            rangeButtons[color] = new List<Button>();
+            foreach (var range in RangeOptions)
+            {
+                var capturedRange = range;
+                var button = CreateButton($"{color}{range}", rangeGrid.transform, range.ToString(), 13, () =>
+                {
+                    selectedRanges[color] = capturedRange;
+                    ResetDisplay();
+                });
+                rangeButtons[color].Add(button);
+            }
+        }
+
+        private RectTransform CreateGrid(string name, Transform parent, int columns, Vector2 cellSize, float spacing)
+        {
+            var grid = CreatePanel(name, parent, Color.clear);
+            grid.sizeDelta = new Vector2(0f, Mathf.Ceil(5f / columns) * (cellSize.y + spacing));
+
+            var layout = grid.gameObject.AddComponent<GridLayoutGroup>();
+            layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            layout.constraintCount = columns;
+            layout.cellSize = cellSize;
+            layout.spacing = new Vector2(spacing, spacing);
+            return grid;
+        }
+
+        private void BuildBoardCells()
+        {
+            boardCells.Clear();
+
+            foreach (Transform child in boardRoot)
+            {
+                Destroy(child.gameObject);
+            }
+
+            var grid = boardRoot.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 5;
+            grid.cellSize = new Vector2(88f, 88f);
+            grid.spacing = new Vector2(4f, 4f);
+
+            for (var y = CurrentStage.Height - 1; y >= 0; y--)
+            {
+                for (var x = 0; x < CurrentStage.Width; x++)
+                {
+                    var cell = CreatePanel($"Cell{x}_{y}", boardRoot, cellColor);
+                    var label = CreateText("Value", cell, string.Empty, 30, TextAnchor.MiddleCenter);
+                    Stretch(label.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+                    boardCells.Add(new BoardCellView(new GridPosition(x, y), cell.GetComponent<Image>(), label));
+                }
+            }
+        }
+
+        private void Update()
+        {
+            if (canvas == null)
+            {
+                return;
+            }
+
+            UpdateTexts();
+            UpdateRuleButtons();
+            RenderBoard();
+        }
+
+        private void UpdateTexts()
+        {
+            titleText.text = $"Rule Reconstruction / {CurrentStage.Name}";
+            boardTitleText.text = GetMainBoardTitle();
+            progressText.text = showResult ? $"{appliedSourceCount}/{CurrentStage.Sources.Count}" : "Target";
+            statusText.text = GetStatusText();
+            statusText.color = validationResult.IsClear && showResult ? clearTextColor : Color.white;
+
+            var analysisLabel = stageAnalysis.HasUniqueSolution ? "Unique" : $"{stageAnalysis.MatchingRuleCount} Solutions";
+            analysisText.text = $"Stage Check\n{analysisLabel} / Tested {stageAnalysis.TestedRuleCount}";
+        }
+
+        private void UpdateRuleButtons()
+        {
+            foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
+            {
+                for (var index = 0; index < DirectionOptions.Length; index++)
+                {
+                    SetButtonSelected(directionButtons[color][index], selectedDirections[color] == DirectionOptions[index]);
                 }
 
-                GUILayout.EndHorizontal();
+                for (var index = 0; index < RangeOptions.Length; index++)
+                {
+                    SetButtonSelected(rangeButtons[color][index], selectedRanges[color] == RangeOptions[index]);
+                }
             }
         }
 
-        private void DrawColorControls(BoxColor color)
+        private void RenderBoard()
         {
-            GUILayout.Label($"{color} Rule", titleStyle);
-
-            var directionIndex = (int)selectedDirections[color];
-            var nextDirection = GUILayout.SelectionGrid(directionIndex, DirectionLabels, 2, buttonStyle, GUILayout.Height(buttonHeight * 3f));
-            if (nextDirection != directionIndex)
+            foreach (var view in boardCells)
             {
-                selectedDirections[color] = (DirectionType)nextDirection;
-                ResetDisplay();
+                var cell = displayBoard.GetCell(view.Position.X, view.Position.Y);
+                var isWrong = showMismatch && !cell.Matches(CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y));
+                var isAffected = !cell.HasSource && activeAffectedCells.Contains(view.Position);
+
+                view.Background.color = cell.HasSource ? GetSourceColor(cell.SourceColor) : cellColor;
+                view.Label.text = cell.HasSource ? string.Empty : cell.Number.ToString();
+                view.Label.color = isWrong ? wrongTextColor : isAffected ? affectedTextColor : Color.white;
             }
-
-            GUILayout.Space(4f);
-
-            var rangeIndex = (int)selectedRanges[color];
-            var nextRange = GUILayout.SelectionGrid(rangeIndex, RangeLabels, 2, buttonStyle, GUILayout.Height(buttonHeight));
-            if (nextRange != rangeIndex)
-            {
-                selectedRanges[color] = (RangeType)nextRange;
-                ResetDisplay();
-            }
-        }
-
-        private void DrawStageAnalysis()
-        {
-            GUILayout.Label("Stage Check", titleStyle);
-            var result = stageAnalysis.HasUniqueSolution
-                ? "Unique"
-                : $"{stageAnalysis.MatchingRuleCount} Solutions";
-            GUILayout.Label($"{result} / Tested {stageAnalysis.TestedRuleCount}", bodyStyle);
-        }
-
-        private void DrawActionPanel()
-        {
-            GUI.enabled = !isRunning;
-
-            if (GUILayout.Button("Run", buttonStyle, GUILayout.Height(buttonHeight)))
-            {
-                StartRun();
-            }
-
-            if (GUILayout.Button("Reset", buttonStyle, GUILayout.Height(buttonHeight)))
-            {
-                ResetDisplay();
-            }
-
-            GUI.enabled = true;
-
-            GUILayout.Label(GetStatusText(), validationResult.IsClear && showResult ? clearStyle : titleStyle);
-        }
-
-        private void UpdateLayoutMetrics()
-        {
-            panelGap = Mathf.Clamp(Screen.width * 0.018f, 10f, 22f);
-            sidebarWidth = Mathf.Clamp(Screen.width * 0.34f, 300f, 440f);
-            buttonHeight = Mathf.Clamp(Screen.height * 0.065f, 30f, 48f);
-            var targetAreaWidth = Screen.width - 36f - sidebarWidth - panelGap - 48f;
-            var targetAreaHeight = Screen.height - 116f;
-            targetCellSize = Mathf.Clamp(Mathf.Min(targetAreaWidth / 5f, targetAreaHeight / 5f), 54f, 112f);
         }
 
         private void MoveStage(int delta)
         {
             stageIndex = (stageIndex + delta + stages.Count) % stages.Count;
+            BuildSidebar();
+            BuildBoardCells();
             ResetDisplay();
         }
 
@@ -367,11 +484,6 @@ namespace Expost.RuleReconstruction
             return "Target";
         }
 
-        private string GetProgressText()
-        {
-            return showResult ? $"{appliedSourceCount}/{CurrentStage.Sources.Count}" : "Target";
-        }
-
         private string GetStatusText()
         {
             if (isRunning)
@@ -398,117 +510,104 @@ namespace Expost.RuleReconstruction
             return $"APPLYING {source.Color} {activeSourceIndex + 1}/{CurrentStage.Sources.Count}";
         }
 
-        private GUIStyle GetCellStyle(BoardState board, BoardState comparisonTarget, int x, int y)
+        private Color GetSourceColor(BoxColor color)
         {
-            var cell = board.GetCell(x, y);
-            var position = new GridPosition(x, y);
-
-            if (comparisonTarget != null && !cell.Matches(comparisonTarget.GetCell(x, y)))
+            return color switch
             {
-                return wrongStyle;
-            }
-
-            if (!cell.HasSource && activeAffectedCells.Contains(position))
-            {
-                return affectedStyle;
-            }
-
-            if (!cell.HasSource)
-            {
-                return cellStyle;
-            }
-
-            return GetSourceStyle(cell.SourceColor);
+                BoxColor.Red => new Color(0.82f, 0.18f, 0.16f),
+                BoxColor.Blue => new Color(0.14f, 0.36f, 0.88f),
+                BoxColor.Green => new Color(0.13f, 0.64f, 0.28f),
+                BoxColor.Yellow => new Color(0.92f, 0.74f, 0.16f),
+                _ => cellColor
+            };
         }
 
-        private string GetCellText(CellState cell)
+        private RectTransform CreatePanel(string name, Transform parent, Color color)
         {
-            if (cell.HasSource)
-            {
-                return string.Empty;
-            }
-
-            return cell.Number.ToString();
+            var gameObject = new GameObject(name);
+            gameObject.transform.SetParent(parent, false);
+            var rectTransform = gameObject.AddComponent<RectTransform>();
+            var image = gameObject.AddComponent<Image>();
+            image.color = color;
+            return rectTransform;
         }
 
-        private void EnsureStyles()
+        private Text CreateText(string name, Transform parent, string text, int fontSize, TextAnchor alignment)
         {
-            var titleSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * 0.045f, 18f, 28f));
-            var bodySize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * 0.032f, 14f, 20f));
-            var cellFontSize = Mathf.RoundToInt(Mathf.Clamp(Screen.height * 0.052f, 20f, 34f));
+            var gameObject = new GameObject(name);
+            gameObject.transform.SetParent(parent, false);
+            var label = gameObject.AddComponent<Text>();
+            label.font = uiFont;
+            label.text = text;
+            label.fontSize = fontSize;
+            label.alignment = alignment;
+            label.color = Color.white;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+            return label;
+        }
 
-            if (titleStyle != null && titleStyle.fontSize == titleSize && cellStyle.fontSize == cellFontSize)
+        private Button CreateButton(string name, Transform parent, string label, int fontSize, UnityEngine.Events.UnityAction onClick)
+        {
+            var rectTransform = CreatePanel(name, parent, buttonColor);
+            var button = rectTransform.gameObject.AddComponent<Button>();
+            button.targetGraphic = rectTransform.GetComponent<Image>();
+            button.onClick.AddListener(onClick);
+
+            var text = CreateText("Text", rectTransform, label, fontSize, TextAnchor.MiddleCenter);
+            Stretch(text.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            return button;
+        }
+
+        private void SetButtonSelected(Button button, bool selected)
+        {
+            var image = button.targetGraphic as Image;
+            if (image == null)
             {
                 return;
             }
 
-            titleStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = titleSize,
-                fontStyle = FontStyle.Bold,
-                normal = { textColor = Color.white }
-            };
-            bodyStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = bodySize,
-                normal = { textColor = Color.white }
-            };
-            buttonStyle = new GUIStyle(GUI.skin.button)
-            {
-                fontSize = bodySize,
-                fontStyle = FontStyle.Bold
-            };
-            cellStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), Color.white, cellFontSize);
-            redSourceStyle = CreateCellStyle(new Color(0.82f, 0.18f, 0.16f), Color.white, cellFontSize);
-            blueSourceStyle = CreateCellStyle(new Color(0.14f, 0.36f, 0.88f), Color.white, cellFontSize);
-            greenSourceStyle = CreateCellStyle(new Color(0.13f, 0.64f, 0.28f), Color.white, cellFontSize);
-            yellowSourceStyle = CreateCellStyle(new Color(0.92f, 0.74f, 0.16f), new Color(0.10f, 0.10f, 0.10f), cellFontSize);
-            affectedStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(0.54f, 0.93f, 1f), cellFontSize);
-            wrongStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(1f, 0.86f, 0.20f), cellFontSize);
-            clearStyle = new GUIStyle(titleStyle)
-            {
-                normal = { textColor = new Color(0.35f, 0.95f, 0.56f) }
-            };
-            panelStyle = new GUIStyle(GUI.skin.box)
-            {
-                padding = new RectOffset(12, 12, 12, 12)
-            };
+            image.color = selected ? selectedButtonColor : buttonColor;
+            var label = button.GetComponentInChildren<Text>();
+            label.color = selected ? Color.black : Color.white;
         }
 
-        private static GUIStyle CreateCellStyle(Color background, Color text, int fontSize)
+        private void ClearCanvasChildren()
         {
-            var style = new GUIStyle(GUI.skin.box)
+            foreach (Transform child in canvas.transform)
             {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = fontSize,
-                fontStyle = FontStyle.Bold
-            };
-            style.normal.background = MakeTexture(background);
-            style.normal.textColor = text;
-            return style;
+                Destroy(child.gameObject);
+            }
         }
 
-        private static Texture2D MakeTexture(Color color)
+        private static void Stretch(RectTransform rectTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
-            var texture = new Texture2D(1, 1);
-            texture.SetPixel(0, 0, color);
-            texture.Apply();
-            return texture;
+            rectTransform.anchorMin = anchorMin;
+            rectTransform.anchorMax = anchorMax;
+            rectTransform.offsetMin = offsetMin;
+            rectTransform.offsetMax = offsetMax;
         }
 
-        private GUIStyle GetSourceStyle(BoxColor color)
+        private static void Anchor(RectTransform rectTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
-            return color switch
-            {
-                BoxColor.Red => redSourceStyle,
-                BoxColor.Blue => blueSourceStyle,
-                BoxColor.Green => greenSourceStyle,
-                BoxColor.Yellow => yellowSourceStyle,
-                _ => cellStyle
-            };
+            Stretch(rectTransform, anchorMin, anchorMax, offsetMin, offsetMax);
         }
 
         private bool IsComplete => appliedSourceCount >= CurrentStage.Sources.Count;
         private StageData CurrentStage => stages[stageIndex];
+
+        private readonly struct BoardCellView
+        {
+            public readonly GridPosition Position;
+            public readonly Image Background;
+            public readonly Text Label;
+
+            public BoardCellView(GridPosition position, Image background, Text label)
+            {
+                Position = position;
+                Background = background;
+                Label = label;
+            }
+        }
     }
 }
