@@ -37,8 +37,9 @@ namespace Expost.RuleReconstruction
             return board;
         }
 
-        private static IEnumerable<GridPosition> GetAffectedPositions(StageData stage, SourceBoxData source, Rule rule)
+        public static List<GridPosition> GetAffectedPositions(StageData stage, SourceBoxData source, Rule rule)
         {
+            var positions = new List<GridPosition>();
             var directions = GetDirections(rule.Direction);
             var distance = rule.Range == RangeType.One ? 1 : 2;
 
@@ -59,9 +60,11 @@ namespace Expost.RuleReconstruction
                         continue;
                     }
 
-                    yield return new GridPosition(x, y);
+                    positions.Add(new GridPosition(x, y));
                 }
             }
+
+            return positions;
         }
 
         private static void ApplyEffect(BoardState board, GridPosition position, Rule rule)

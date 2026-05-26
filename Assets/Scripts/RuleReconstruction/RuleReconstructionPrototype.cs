@@ -15,8 +15,10 @@ namespace Expost.RuleReconstruction
         private List<StageData> stages;
         private int stageIndex;
         private int appliedSourceCount;
+        private int activeSourceIndex = -1;
         private BoardState resultBoard;
         private BoardState displayBoard;
+        private HashSet<GridPosition> activeAffectedCells = new();
         private ValidationResult validationResult;
         private float sidebarWidth;
         private float targetCellSize;
@@ -33,6 +35,7 @@ namespace Expost.RuleReconstruction
         private GUIStyle cellStyle;
         private GUIStyle redSourceStyle;
         private GUIStyle blueSourceStyle;
+        private GUIStyle affectedStyle;
         private GUIStyle wrongStyle;
         private GUIStyle clearStyle;
         private GUIStyle panelStyle;
@@ -52,6 +55,16 @@ namespace Expost.RuleReconstruction
 
         private void Awake()
         {
+            EnsureInitialized();
+        }
+
+        private void EnsureInitialized()
+        {
+            if (stages != null)
+            {
+                return;
+            }
+
             stages = PrototypeStageFactory.CreateStages();
 
             foreach (var color in Colors)
@@ -65,6 +78,7 @@ namespace Expost.RuleReconstruction
 
         private void OnGUI()
         {
+            EnsureInitialized();
             UpdateLayoutMetrics();
             EnsureStyles();
 
@@ -212,6 +226,8 @@ namespace Expost.RuleReconstruction
         private void ResetSimulationState()
         {
             appliedSourceCount = 0;
+            activeSourceIndex = -1;
+            activeAffectedCells.Clear();
             resultBoard = RuleSimulator.Simulate(CurrentStage, BuildSelectedRules(), appliedSourceCount);
             validationResult = Validator.Validate(resultBoard, CurrentStage.TargetBoard);
         }
@@ -243,12 +259,20 @@ namespace Expost.RuleReconstruction
 
             while (!IsComplete)
             {
+                activeSourceIndex = appliedSourceCount;
+                activeAffectedCells = GetActiveAffectedCells(activeSourceIndex);
+                displayBoard = resultBoard;
+                yield return new WaitForSeconds(0.25f);
+
                 appliedSourceCount++;
                 resultBoard = RuleSimulator.Simulate(CurrentStage, BuildSelectedRules(), appliedSourceCount);
                 validationResult = Validator.Validate(resultBoard, CurrentStage.TargetBoard);
                 displayBoard = resultBoard;
-                yield return new WaitForSeconds(0.55f);
+                yield return new WaitForSeconds(0.45f);
             }
+
+            activeSourceIndex = -1;
+            activeAffectedCells.Clear();
 
             if (!validationResult.IsClear)
             {
@@ -288,6 +312,31 @@ namespace Expost.RuleReconstruction
             return ruleSet;
         }
 
+        private HashSet<GridPosition> GetActiveAffectedCells(int sourceIndex)
+        {
+            var cells = new HashSet<GridPosition>();
+
+            if (sourceIndex < 0 || sourceIndex >= CurrentStage.Sources.Count)
+            {
+                return cells;
+            }
+
+            var source = CurrentStage.Sources[sourceIndex];
+            var rules = BuildSelectedRules();
+
+            if (!rules.TryGet(source.Color, out var rule))
+            {
+                return cells;
+            }
+
+            foreach (var position in RuleSimulator.GetAffectedPositions(CurrentStage, source, rule))
+            {
+                cells.Add(position);
+            }
+
+            return cells;
+        }
+
         private string GetMainBoardTitle()
         {
             if (showMismatch)
@@ -312,7 +361,7 @@ namespace Expost.RuleReconstruction
         {
             if (isRunning)
             {
-                return $"RUNNING {appliedSourceCount}/{CurrentStage.Sources.Count}";
+                return GetRunningStatusText();
             }
 
             if (!showResult)
@@ -323,13 +372,30 @@ namespace Expost.RuleReconstruction
             return validationResult.IsClear ? "CLEAR" : $"WRONG {validationResult.WrongCellCount}";
         }
 
+        private string GetRunningStatusText()
+        {
+            if (activeSourceIndex < 0 || activeSourceIndex >= CurrentStage.Sources.Count)
+            {
+                return $"RUNNING {appliedSourceCount}/{CurrentStage.Sources.Count}";
+            }
+
+            var source = CurrentStage.Sources[activeSourceIndex];
+            return $"APPLYING {source.Color} {activeSourceIndex + 1}/{CurrentStage.Sources.Count}";
+        }
+
         private GUIStyle GetCellStyle(BoardState board, BoardState comparisonTarget, int x, int y)
         {
             var cell = board.GetCell(x, y);
+            var position = new GridPosition(x, y);
 
             if (comparisonTarget != null && !cell.Matches(comparisonTarget.GetCell(x, y)))
             {
                 return wrongStyle;
+            }
+
+            if (!cell.HasSource && activeAffectedCells.Contains(position))
+            {
+                return affectedStyle;
             }
 
             if (!cell.HasSource)
@@ -380,6 +446,7 @@ namespace Expost.RuleReconstruction
             cellStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), Color.white, cellFontSize);
             redSourceStyle = CreateCellStyle(new Color(0.82f, 0.18f, 0.16f), Color.white, cellFontSize);
             blueSourceStyle = CreateCellStyle(new Color(0.14f, 0.36f, 0.88f), Color.white, cellFontSize);
+            affectedStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(0.54f, 0.93f, 1f), cellFontSize);
             wrongStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(1f, 0.86f, 0.20f), cellFontSize);
             clearStyle = new GUIStyle(titleStyle)
             {
