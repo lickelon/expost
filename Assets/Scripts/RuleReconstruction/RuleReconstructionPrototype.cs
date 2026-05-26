@@ -8,7 +8,7 @@ namespace Expost.RuleReconstruction
     {
         private static readonly string[] DirectionLabels = { "Cross", "Diagonal", "Horizontal", "Vertical", "AllAround" };
         private static readonly string[] RangeLabels = { "One", "Two" };
-        private static readonly BoxColor[] Colors = { BoxColor.Red, BoxColor.Blue };
+        private static readonly BoxColor[] AllColors = { BoxColor.Red, BoxColor.Blue, BoxColor.Green, BoxColor.Yellow };
 
         private readonly Dictionary<BoxColor, DirectionType> selectedDirections = new();
         private readonly Dictionary<BoxColor, RangeType> selectedRanges = new();
@@ -20,6 +20,7 @@ namespace Expost.RuleReconstruction
         private BoardState displayBoard;
         private HashSet<GridPosition> activeAffectedCells = new();
         private ValidationResult validationResult;
+        private StageAnalysisResult stageAnalysis;
         private float sidebarWidth;
         private float targetCellSize;
         private float panelGap;
@@ -35,6 +36,8 @@ namespace Expost.RuleReconstruction
         private GUIStyle cellStyle;
         private GUIStyle redSourceStyle;
         private GUIStyle blueSourceStyle;
+        private GUIStyle greenSourceStyle;
+        private GUIStyle yellowSourceStyle;
         private GUIStyle affectedStyle;
         private GUIStyle wrongStyle;
         private GUIStyle clearStyle;
@@ -67,7 +70,7 @@ namespace Expost.RuleReconstruction
 
             stages = PrototypeStageFactory.CreateStages();
 
-            foreach (var color in Colors)
+            foreach (var color in AllColors)
             {
                 selectedDirections[color] = DirectionType.Cross;
                 selectedRanges[color] = RangeType.One;
@@ -117,11 +120,13 @@ namespace Expost.RuleReconstruction
             GUILayout.BeginVertical(panelStyle, GUILayout.Width(sidebarWidth), GUILayout.Height(Screen.height - 82f));
             sidebarScroll = GUILayout.BeginScrollView(sidebarScroll, false, true);
 
-            foreach (var color in Colors)
+            foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
                 DrawColorControls(color);
                 GUILayout.Space(10f);
             }
+
+            DrawStageAnalysis();
 
             GUILayout.EndScrollView();
             GUILayout.Space(8f);
@@ -188,6 +193,15 @@ namespace Expost.RuleReconstruction
             }
         }
 
+        private void DrawStageAnalysis()
+        {
+            GUILayout.Label("Stage Check", titleStyle);
+            var result = stageAnalysis.HasUniqueSolution
+                ? "Unique"
+                : $"{stageAnalysis.MatchingRuleCount} Solutions";
+            GUILayout.Label($"{result} / Tested {stageAnalysis.TestedRuleCount}", bodyStyle);
+        }
+
         private void DrawActionPanel()
         {
             GUI.enabled = !isRunning;
@@ -230,6 +244,7 @@ namespace Expost.RuleReconstruction
             activeAffectedCells.Clear();
             resultBoard = RuleSimulator.Simulate(CurrentStage, BuildSelectedRules(), appliedSourceCount);
             validationResult = Validator.Validate(resultBoard, CurrentStage.TargetBoard);
+            stageAnalysis = StageRuleAnalyzer.Analyze(CurrentStage);
         }
 
         private void ResetDisplay()
@@ -304,7 +319,7 @@ namespace Expost.RuleReconstruction
         {
             var ruleSet = new RuleSet();
 
-            foreach (var color in Colors)
+            foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
                 ruleSet.Set(color, new Rule(selectedDirections[color], selectedRanges[color], EffectType.AddNumber));
             }
@@ -403,7 +418,7 @@ namespace Expost.RuleReconstruction
                 return cellStyle;
             }
 
-            return cell.SourceColor == BoxColor.Red ? redSourceStyle : blueSourceStyle;
+            return GetSourceStyle(cell.SourceColor);
         }
 
         private string GetCellText(CellState cell)
@@ -446,6 +461,8 @@ namespace Expost.RuleReconstruction
             cellStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), Color.white, cellFontSize);
             redSourceStyle = CreateCellStyle(new Color(0.82f, 0.18f, 0.16f), Color.white, cellFontSize);
             blueSourceStyle = CreateCellStyle(new Color(0.14f, 0.36f, 0.88f), Color.white, cellFontSize);
+            greenSourceStyle = CreateCellStyle(new Color(0.13f, 0.64f, 0.28f), Color.white, cellFontSize);
+            yellowSourceStyle = CreateCellStyle(new Color(0.92f, 0.74f, 0.16f), new Color(0.10f, 0.10f, 0.10f), cellFontSize);
             affectedStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(0.54f, 0.93f, 1f), cellFontSize);
             wrongStyle = CreateCellStyle(new Color(0.16f, 0.17f, 0.19f), new Color(1f, 0.86f, 0.20f), cellFontSize);
             clearStyle = new GUIStyle(titleStyle)
@@ -477,6 +494,18 @@ namespace Expost.RuleReconstruction
             texture.SetPixel(0, 0, color);
             texture.Apply();
             return texture;
+        }
+
+        private GUIStyle GetSourceStyle(BoxColor color)
+        {
+            return color switch
+            {
+                BoxColor.Red => redSourceStyle,
+                BoxColor.Blue => blueSourceStyle,
+                BoxColor.Green => greenSourceStyle,
+                BoxColor.Yellow => yellowSourceStyle,
+                _ => cellStyle
+            };
         }
 
         private bool IsComplete => appliedSourceCount >= CurrentStage.Sources.Count;
