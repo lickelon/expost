@@ -66,11 +66,34 @@ namespace Expost.RuleReconstruction
         public int Y;
         public BoxColor Color;
 
+        public SourceBoxData()
+        {
+        }
+
         public SourceBoxData(int x, int y, BoxColor color)
         {
             X = x;
             Y = y;
             Color = color;
+        }
+    }
+
+    [Serializable]
+    public sealed class ColorRuleData
+    {
+        public BoxColor Color;
+        public DirectionType Direction;
+        public RangeType Range;
+
+        public ColorRuleData()
+        {
+        }
+
+        public ColorRuleData(BoxColor color, DirectionType direction, RangeType range)
+        {
+            Color = color;
+            Direction = direction;
+            Range = range;
         }
     }
 
