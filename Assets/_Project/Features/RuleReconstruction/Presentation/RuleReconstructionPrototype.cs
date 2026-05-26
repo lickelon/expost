@@ -9,21 +9,6 @@ namespace Expost.RuleReconstruction
 {
     public sealed class RuleReconstructionPrototype : MonoBehaviour
     {
-        private static readonly DirectionType[] DirectionOptions =
-        {
-            DirectionType.Cross,
-            DirectionType.Diagonal,
-            DirectionType.Horizontal,
-            DirectionType.Vertical,
-            DirectionType.AllAround
-        };
-
-        private static readonly RangeType[] RangeOptions =
-        {
-            RangeType.One,
-            RangeType.Two
-        };
-
         private static readonly BoxColor[] AllColors =
         {
             BoxColor.Red,
@@ -32,22 +17,14 @@ namespace Expost.RuleReconstruction
             BoxColor.Yellow
         };
 
-        private readonly Dictionary<BoxColor, DirectionType> selectedDirections = new();
-        private readonly Dictionary<BoxColor, RangeType> selectedRanges = new();
         private readonly Dictionary<BoxColor, Text> directionValueTexts = new();
         private readonly Dictionary<BoxColor, Text> rangeValueTexts = new();
         private readonly Dictionary<BoxColor, RulePreviewView> previewViews = new();
         private readonly List<BoardCellView> boardCells = new();
 
-        private List<StageData> stages;
-        private int stageIndex;
-        private int appliedSourceCount;
-        private int activeSourceIndex = -1;
-        private BoardState resultBoard;
+        private RuleReconstructionSession session;
         private BoardState displayBoard;
         private HashSet<GridPosition> activeAffectedCells = new();
-        private ValidationResult validationResult;
-        private StageAnalysisResult stageAnalysis;
         private Coroutine runRoutine;
         private bool isRunning;
         private bool showResult;
@@ -67,7 +44,6 @@ namespace Expost.RuleReconstruction
         private readonly Color pageColor = new(0.18f, 0.29f, 0.47f);
         private readonly Color panelColor = new(0.13f, 0.23f, 0.39f);
         private readonly Color cellColor = new(0.16f, 0.17f, 0.19f);
-        private readonly Color selectedButtonColor = new(0.82f, 0.86f, 0.92f);
         private readonly Color buttonColor = new(0.38f, 0.43f, 0.50f);
         private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
         private readonly Color wrongTextColor = new(1f, 0.86f, 0.20f);
@@ -93,19 +69,13 @@ namespace Expost.RuleReconstruction
 
         private void EnsureInitialized()
         {
-            if (stages != null)
+            if (session != null)
             {
                 return;
             }
 
-            stages = StageRepository.LoadStages();
+            session = new RuleReconstructionSession(StageRepository.LoadStages(), AllColors);
             uiFont = Font.CreateDynamicFontFromOSFont(new[] { "SF Pro", "Arial", "Helvetica" }, 18);
-
-            foreach (var color in AllColors)
-            {
-                selectedDirections[color] = DirectionType.Cross;
-                selectedRanges[color] = RangeType.One;
-            }
 
             CreateCanvas();
             BuildLayout();
@@ -282,12 +252,12 @@ namespace Expost.RuleReconstruction
 
         private void Update()
         {
-            if (stages == null || canvas == null)
+            if (session == null || canvas == null)
             {
                 EnsureInitialized();
             }
 
-            if (stages == null || canvas == null)
+            if (session == null || canvas == null)
             {
                 return;
             }
@@ -302,23 +272,24 @@ namespace Expost.RuleReconstruction
         {
             titleText.text = $"Rule Reconstruction / {CurrentStage.Name}";
             boardTitleText.text = GetMainBoardTitle();
-            progressText.text = showResult ? $"{appliedSourceCount}/{CurrentStage.Sources.Count}" : "Target";
+            progressText.text = showResult ? $"{session.AppliedSourceCount}/{CurrentStage.Sources.Count}" : "Target";
             statusText.text = GetStatusText();
             statusText.color = GetResultTextColor();
             resultBannerText.text = GetResultBannerText();
             resultBannerText.color = GetResultTextColor();
             resultBannerText.enabled = !string.IsNullOrEmpty(resultBannerText.text);
 
-            var analysisLabel = stageAnalysis.HasUniqueSolution ? "Unique" : $"{stageAnalysis.MatchingRuleCount} Solutions";
-            analysisText.text = $"Stage Check\n{analysisLabel} / Tested {stageAnalysis.TestedRuleCount}";
+            var analysis = session.StageAnalysis;
+            var analysisLabel = analysis.HasUniqueSolution ? "Unique" : $"{analysis.MatchingRuleCount} Solutions";
+            analysisText.text = $"Stage Check\n{analysisLabel} / Tested {analysis.TestedRuleCount}";
         }
 
         private void UpdateRuleButtons()
         {
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
-                directionValueTexts[color].text = selectedDirections[color].ToString();
-                rangeValueTexts[color].text = selectedRanges[color].ToString();
+                directionValueTexts[color].text = session.GetDirection(color).ToString();
+                rangeValueTexts[color].text = session.GetRange(color).ToString();
             }
         }
 
@@ -327,7 +298,7 @@ namespace Expost.RuleReconstruction
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
                 var preview = previewViews[color];
-                var affected = GetPreviewAffectedCells(selectedDirections[color]);
+                var affected = GetPreviewAffectedCells(session.GetDirection(color));
 
                 for (var index = 0; index < preview.Cells.Count; index++)
                 {
@@ -365,7 +336,7 @@ namespace Expost.RuleReconstruction
 
         private void MoveStage(int delta)
         {
-            stageIndex = (stageIndex + delta + stages.Count) % stages.Count;
+            session.MoveStage(delta);
             ResetDisplay();
             BuildSidebar();
             BuildBoardCells();
@@ -373,32 +344,21 @@ namespace Expost.RuleReconstruction
 
         private void CycleDirection(BoxColor color)
         {
-            var nextIndex = (IndexOf(DirectionOptions, selectedDirections[color]) + 1) % DirectionOptions.Length;
-            selectedDirections[color] = DirectionOptions[nextIndex];
+            session.CycleDirection(color);
             ResetDisplay();
         }
 
         private void CycleRange(BoxColor color)
         {
-            var nextIndex = (IndexOf(RangeOptions, selectedRanges[color]) + 1) % RangeOptions.Length;
-            selectedRanges[color] = RangeOptions[nextIndex];
+            session.CycleRange(color);
             ResetDisplay();
-        }
-
-        private void ResetSimulationState()
-        {
-            appliedSourceCount = 0;
-            activeSourceIndex = -1;
-            activeAffectedCells.Clear();
-            resultBoard = RuleSimulator.Simulate(CurrentStage, BuildSelectedRules(), appliedSourceCount);
-            validationResult = Validator.Validate(resultBoard, CurrentStage.TargetBoard);
-            stageAnalysis = StageRuleAnalyzer.Analyze(CurrentStage);
         }
 
         private void ResetDisplay()
         {
             StopRunRoutine();
-            ResetSimulationState();
+            session.ResetSimulation();
+            activeAffectedCells.Clear();
             displayBoard = CurrentStage.TargetBoard;
             showResult = false;
             showMismatch = false;
@@ -415,29 +375,28 @@ namespace Expost.RuleReconstruction
             isRunning = true;
             showResult = true;
             showMismatch = false;
-            ResetSimulationState();
-            displayBoard = resultBoard;
+            session.ResetSimulation();
+            activeAffectedCells.Clear();
+            displayBoard = session.ResultBoard;
 
             yield return new WaitForSeconds(0.35f);
 
             while (!IsComplete)
             {
-                activeSourceIndex = appliedSourceCount;
-                activeAffectedCells = GetActiveAffectedCells(activeSourceIndex);
-                displayBoard = resultBoard;
+                session.SetActiveSource(session.AppliedSourceCount);
+                activeAffectedCells = session.GetAffectedCells(session.ActiveSourceIndex);
+                displayBoard = session.ResultBoard;
                 yield return new WaitForSeconds(0.25f);
 
-                appliedSourceCount++;
-                resultBoard = RuleSimulator.Simulate(CurrentStage, BuildSelectedRules(), appliedSourceCount);
-                validationResult = Validator.Validate(resultBoard, CurrentStage.TargetBoard);
-                displayBoard = resultBoard;
+                session.ApplyNextSource();
+                displayBoard = session.ResultBoard;
                 yield return new WaitForSeconds(0.45f);
             }
 
-            activeSourceIndex = -1;
+            session.ClearActiveSource();
             activeAffectedCells.Clear();
 
-            if (!validationResult.IsClear)
+            if (!session.ValidationResult.IsClear)
             {
                 showMismatch = true;
                 yield return new WaitForSeconds(2.4f);
@@ -463,53 +422,16 @@ namespace Expost.RuleReconstruction
             isRunning = false;
         }
 
-        private RuleSet BuildSelectedRules()
-        {
-            var ruleSet = new RuleSet();
-
-            foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
-            {
-                ruleSet.Set(color, new Rule(selectedDirections[color], selectedRanges[color], EffectType.AddNumber));
-            }
-
-            return ruleSet;
-        }
-
-        private HashSet<GridPosition> GetActiveAffectedCells(int sourceIndex)
-        {
-            var cells = new HashSet<GridPosition>();
-
-            if (sourceIndex < 0 || sourceIndex >= CurrentStage.Sources.Count)
-            {
-                return cells;
-            }
-
-            var source = CurrentStage.Sources[sourceIndex];
-            var rules = BuildSelectedRules();
-
-            if (!rules.TryGet(source.Color, out var rule))
-            {
-                return cells;
-            }
-
-            foreach (var position in RuleSimulator.GetAffectedPositions(CurrentStage, source, rule))
-            {
-                cells.Add(position);
-            }
-
-            return cells;
-        }
-
         private string GetMainBoardTitle()
         {
             if (showMismatch)
             {
-                return $"Wrong {validationResult.WrongCellCount}";
+                return $"Wrong {session.ValidationResult.WrongCellCount}";
             }
 
             if (showResult)
             {
-                return validationResult.IsClear && IsComplete ? "Clear" : "Simulation";
+                return session.ValidationResult.IsClear && IsComplete ? "Clear" : "Simulation";
             }
 
             return "Target";
@@ -527,17 +449,17 @@ namespace Expost.RuleReconstruction
                 return "READY";
             }
 
-            return validationResult.IsClear ? "CLEAR" : $"WRONG {validationResult.WrongCellCount}";
+            return session.ValidationResult.IsClear ? "CLEAR" : $"WRONG {session.ValidationResult.WrongCellCount}";
         }
 
         private string GetResultBannerText()
         {
             if (showMismatch)
             {
-                return $"WRONG {validationResult.WrongCellCount}";
+                return $"WRONG {session.ValidationResult.WrongCellCount}";
             }
 
-            if (showResult && IsComplete && validationResult.IsClear)
+            if (showResult && IsComplete && session.ValidationResult.IsClear)
             {
                 return "CLEAR";
             }
@@ -552,7 +474,7 @@ namespace Expost.RuleReconstruction
                 return wrongTextColor;
             }
 
-            if (showResult && validationResult.IsClear)
+            if (showResult && session.ValidationResult.IsClear)
             {
                 return clearTextColor;
             }
@@ -562,13 +484,13 @@ namespace Expost.RuleReconstruction
 
         private string GetRunningStatusText()
         {
-            if (activeSourceIndex < 0 || activeSourceIndex >= CurrentStage.Sources.Count)
+            if (session.ActiveSourceIndex < 0 || session.ActiveSourceIndex >= CurrentStage.Sources.Count)
             {
-                return $"RUNNING {appliedSourceCount}/{CurrentStage.Sources.Count}";
+                return $"RUNNING {session.AppliedSourceCount}/{CurrentStage.Sources.Count}";
             }
 
-            var source = CurrentStage.Sources[activeSourceIndex];
-            return $"APPLYING {source.Color} {activeSourceIndex + 1}/{CurrentStage.Sources.Count}";
+            var source = CurrentStage.Sources[session.ActiveSourceIndex];
+            return $"APPLYING {source.Color} {session.ActiveSourceIndex + 1}/{CurrentStage.Sources.Count}";
         }
 
         private Color GetSourceColor(BoxColor color)
@@ -679,19 +601,6 @@ namespace Expost.RuleReconstruction
             return cells;
         }
 
-        private static int IndexOf<T>(IReadOnlyList<T> values, T target)
-        {
-            for (var index = 0; index < values.Count; index++)
-            {
-                if (EqualityComparer<T>.Default.Equals(values[index], target))
-                {
-                    return index;
-                }
-            }
-
-            return 0;
-        }
-
         private void ClearCanvasChildren()
         {
             foreach (Transform child in canvas.transform)
@@ -713,8 +622,8 @@ namespace Expost.RuleReconstruction
             Stretch(rectTransform, anchorMin, anchorMax, offsetMin, offsetMax);
         }
 
-        private bool IsComplete => appliedSourceCount >= CurrentStage.Sources.Count;
-        private StageData CurrentStage => stages[stageIndex];
+        private bool IsComplete => session.IsComplete;
+        private StageData CurrentStage => session.CurrentStage;
 
         private readonly struct BoardCellView
         {
