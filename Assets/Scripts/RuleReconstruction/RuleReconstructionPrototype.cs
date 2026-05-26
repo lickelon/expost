@@ -68,7 +68,7 @@ namespace Expost.RuleReconstruction
                 return;
             }
 
-            stages = PrototypeStageFactory.CreateStages();
+            stages = StageRepository.LoadStages();
 
             foreach (var color in AllColors)
             {
