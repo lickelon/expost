@@ -6,7 +6,9 @@ namespace Expost.RuleReconstruction
     public enum BoxColor
     {
         Red,
-        Blue
+        Blue,
+        Green,
+        Yellow
     }
 
     public enum DirectionType
