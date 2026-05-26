@@ -50,12 +50,12 @@ namespace Expost.RuleReconstruction
                     var x = source.X + direction.X * step;
                     var y = source.Y + direction.Y * step;
 
-                    if (x == source.X && y == source.Y)
+                    if (x < 0 || x >= stage.Width || y < 0 || y >= stage.Height)
                     {
                         continue;
                     }
 
-                    if (x < 0 || x >= stage.Width || y < 0 || y >= stage.Height)
+                    if (IsSourcePosition(stage, x, y))
                     {
                         continue;
                     }
@@ -65,6 +65,19 @@ namespace Expost.RuleReconstruction
             }
 
             return positions;
+        }
+
+        private static bool IsSourcePosition(StageData stage, int x, int y)
+        {
+            foreach (var source in stage.Sources)
+            {
+                if (source.X == x && source.Y == y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void ApplyEffect(BoardState board, GridPosition position, Rule rule)
