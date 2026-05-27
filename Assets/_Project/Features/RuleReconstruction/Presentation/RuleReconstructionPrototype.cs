@@ -325,7 +325,7 @@ namespace Expost.RuleReconstruction
             foreach (var view in boardCells)
             {
                 var cell = displayBoard.GetCell(view.Position.X, view.Position.Y);
-                var isWrong = showMismatch && !cell.Matches(CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y));
+                var isWrong = showMismatch && !Validator.IsCellCorrect(cell, CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y));
                 var isAffected = !cell.HasSource && activeAffectedCells.Contains(view.Position);
 
                 view.Background.color = cell.HasSource ? GetSourceColor(cell.SourceColor) : cellColor;

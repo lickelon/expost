@@ -10,7 +10,7 @@ namespace Expost.RuleReconstruction
             {
                 for (var x = 0; x < target.Width; x++)
                 {
-                    if (!result.GetCell(x, y).Matches(target.GetCell(x, y)))
+                    if (!IsCellCorrect(result.GetCell(x, y), target.GetCell(x, y)))
                     {
                         wrongCount++;
                     }
@@ -18,6 +18,11 @@ namespace Expost.RuleReconstruction
             }
 
             return new ValidationResult(wrongCount == 0, wrongCount);
+        }
+
+        public static bool IsCellCorrect(CellState result, CellState target)
+        {
+            return target.HasSource || result.Number == target.Number;
         }
     }
 }
