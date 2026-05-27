@@ -29,6 +29,7 @@ namespace Expost.RuleReconstruction
         private bool isRunning;
         private bool showResult;
         private bool showMismatch;
+        private bool showResultBanner;
         private Canvas canvas;
         private RectTransform sidebar;
         private RectTransform boardPanel;
@@ -184,7 +185,7 @@ namespace Expost.RuleReconstruction
             var runButton = CreateButton("RunButton", actionRoot, "Run", 16, StartRun);
             Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -30f), Vector2.zero);
 
-            var resetButton = CreateButton("ResetButton", actionRoot, "Reset", 16, ResetDisplay);
+            var resetButton = CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
             Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -66f), new Vector2(0f, -36f));
 
             statusText = CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
@@ -362,6 +363,7 @@ namespace Expost.RuleReconstruction
             displayBoard = CurrentStage.TargetBoard;
             showResult = false;
             showMismatch = false;
+            showResultBanner = false;
         }
 
         private void StartRun()
@@ -375,6 +377,7 @@ namespace Expost.RuleReconstruction
             isRunning = true;
             showResult = true;
             showMismatch = false;
+            showResultBanner = false;
             session.ResetSimulation();
             activeAffectedCells.Clear();
             displayBoard = session.ResultBoard;
@@ -399,10 +402,15 @@ namespace Expost.RuleReconstruction
             if (!session.ValidationResult.IsClear)
             {
                 showMismatch = true;
-                yield return new WaitForSeconds(2.4f);
-                displayBoard = CurrentStage.TargetBoard;
-                showResult = false;
-                showMismatch = false;
+                showResultBanner = true;
+                yield return new WaitForSeconds(1.1f);
+                showResultBanner = false;
+            }
+            else
+            {
+                showResultBanner = true;
+                yield return new WaitForSeconds(1.1f);
+                showResultBanner = false;
             }
 
             isRunning = false;
@@ -454,6 +462,11 @@ namespace Expost.RuleReconstruction
 
         private string GetResultBannerText()
         {
+            if (!showResultBanner)
+            {
+                return string.Empty;
+            }
+
             if (showMismatch)
             {
                 return $"WRONG {session.ValidationResult.WrongCellCount}";
