@@ -327,7 +327,7 @@ namespace Expost.RuleReconstruction
 
                 view.Background.color = cell.HasSource ? GetSourceColor(cell.SourceColor) : cellColor;
                 view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
-                view.Label.fontSize = isWrong ? 18 : 25;
+                view.Label.fontSize = isWrong ? 14 : 25;
                 view.Label.color = isWrong ? wrongTextColor : isAffected ? affectedTextColor : Color.white;
             }
         }
@@ -339,7 +339,13 @@ namespace Expost.RuleReconstruction
                 return string.Empty;
             }
 
-            return isWrong ? $"{cell.Number}->{targetCell.Number}" : cell.Number.ToString();
+            if (!isWrong)
+            {
+                return cell.Number.ToString();
+            }
+
+            var difference = targetCell.Number - cell.Number;
+            return difference > 0 ? $"+{difference}\nNEED" : $"-{-difference}\nOVER";
         }
 
         private void MoveStage(int delta)
@@ -464,7 +470,7 @@ namespace Expost.RuleReconstruction
                 return "READY";
             }
 
-            return session.ValidationResult.IsClear ? "CLEAR" : $"WRONG {session.ValidationResult.WrongCellCount}";
+            return session.ValidationResult.IsClear ? "CLEAR" : GetMismatchSummaryText();
         }
 
         private string GetResultBannerText()
@@ -485,6 +491,44 @@ namespace Expost.RuleReconstruction
             }
 
             return string.Empty;
+        }
+
+        private string GetMismatchSummaryText()
+        {
+            var summary = GetMismatchSummary();
+            return $"WRONG {summary.Total} | NEED {summary.NeedMore} | OVER {summary.Excess}";
+        }
+
+        private MismatchSummary GetMismatchSummary()
+        {
+            var needMore = 0;
+            var excess = 0;
+            var resultBoard = session.ResultBoard;
+            var targetBoard = CurrentStage.TargetBoard;
+
+            for (var y = 0; y < targetBoard.Height; y++)
+            {
+                for (var x = 0; x < targetBoard.Width; x++)
+                {
+                    var targetCell = targetBoard.GetCell(x, y);
+                    if (targetCell.HasSource)
+                    {
+                        continue;
+                    }
+
+                    var difference = targetCell.Number - resultBoard.GetCell(x, y).Number;
+                    if (difference > 0)
+                    {
+                        needMore++;
+                    }
+                    else if (difference < 0)
+                    {
+                        excess++;
+                    }
+                }
+            }
+
+            return new MismatchSummary(needMore, excess);
         }
 
         private Color GetResultTextColor()
@@ -657,6 +701,20 @@ namespace Expost.RuleReconstruction
                 Background = background;
                 Label = label;
             }
+        }
+
+        private readonly struct MismatchSummary
+        {
+            public readonly int NeedMore;
+            public readonly int Excess;
+
+            public MismatchSummary(int needMore, int excess)
+            {
+                NeedMore = needMore;
+                Excess = excess;
+            }
+
+            public int Total => NeedMore + Excess;
         }
 
         private readonly struct RulePreviewView
