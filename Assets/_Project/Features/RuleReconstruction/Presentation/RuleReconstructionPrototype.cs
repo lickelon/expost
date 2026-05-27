@@ -36,7 +36,6 @@ namespace Expost.RuleReconstruction
         private RectTransform boardRoot;
         private Text titleText;
         private Text boardTitleText;
-        private Text progressText;
         private Text statusText;
         private Text analysisText;
         private Text resultBannerText;
@@ -139,9 +138,6 @@ namespace Expost.RuleReconstruction
 
             boardTitleText = CreateText("BoardTitle", boardPanel, string.Empty, 22, TextAnchor.MiddleLeft);
             Anchor(boardTitleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(16f, -42f), new Vector2(-120f, -8f));
-
-            progressText = CreateText("Progress", boardPanel, string.Empty, 16, TextAnchor.MiddleRight);
-            Anchor(progressText.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-120f, -42f), new Vector2(-16f, -8f));
 
             resultBannerText = CreateText("ResultBanner", boardPanel, string.Empty, 54, TextAnchor.MiddleCenter);
             Anchor(resultBannerText.rectTransform, Vector2.zero, Vector2.one, new Vector2(0f, 26f), new Vector2(0f, -26f));
@@ -273,7 +269,6 @@ namespace Expost.RuleReconstruction
         {
             titleText.text = $"Rule Reconstruction / {CurrentStage.Name}";
             boardTitleText.text = GetMainBoardTitle();
-            progressText.text = showResult ? $"{session.AppliedSourceCount}/{CurrentStage.Sources.Count}" : "Target";
             statusText.text = GetStatusText();
             statusText.color = GetResultTextColor();
             resultBannerText.text = GetResultBannerText();
@@ -326,13 +321,25 @@ namespace Expost.RuleReconstruction
             foreach (var view in boardCells)
             {
                 var cell = displayBoard.GetCell(view.Position.X, view.Position.Y);
-                var isWrong = showMismatch && !Validator.IsCellCorrect(cell, CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y));
+                var targetCell = CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y);
+                var isWrong = showMismatch && !Validator.IsCellCorrect(cell, targetCell);
                 var isAffected = !cell.HasSource && activeAffectedCells.Contains(view.Position);
 
                 view.Background.color = cell.HasSource ? GetSourceColor(cell.SourceColor) : cellColor;
-                view.Label.text = cell.HasSource ? string.Empty : cell.Number.ToString();
+                view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
+                view.Label.fontSize = isWrong ? 18 : 25;
                 view.Label.color = isWrong ? wrongTextColor : isAffected ? affectedTextColor : Color.white;
             }
+        }
+
+        private static string GetBoardCellLabel(CellState cell, CellState targetCell, bool isWrong)
+        {
+            if (cell.HasSource)
+            {
+                return string.Empty;
+            }
+
+            return isWrong ? $"{cell.Number}->{targetCell.Number}" : cell.Number.ToString();
         }
 
         private void MoveStage(int delta)
