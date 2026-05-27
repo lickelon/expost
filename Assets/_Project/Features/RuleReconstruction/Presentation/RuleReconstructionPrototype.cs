@@ -178,7 +178,7 @@ namespace Expost.RuleReconstruction
             var actionRoot = CreatePanel("Actions", sidebar, Color.clear);
             Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 112f));
 
-            var runButton = CreateButton("RunButton", actionRoot, "Run", 16, StartRun);
+            var runButton = CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
             Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -30f), Vector2.zero);
 
             var resetButton = CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
@@ -452,7 +452,7 @@ namespace Expost.RuleReconstruction
 
             if (showResult)
             {
-                return session.ValidationResult.IsClear && IsComplete ? "Clear" : "Simulation";
+                return session.ValidationResult.IsClear && IsComplete ? "Clear" : "Test Result";
             }
 
             return "Target";
@@ -467,7 +467,7 @@ namespace Expost.RuleReconstruction
 
             if (!showResult)
             {
-                return "READY";
+                return "TEST READY";
             }
 
             return session.ValidationResult.IsClear ? "CLEAR" : GetMismatchSummaryText();
@@ -550,11 +550,11 @@ namespace Expost.RuleReconstruction
         {
             if (session.ActiveSourceIndex < 0 || session.ActiveSourceIndex >= CurrentStage.Sources.Count)
             {
-                return $"RUNNING {session.AppliedSourceCount}/{CurrentStage.Sources.Count}";
+                return "TESTING";
             }
 
             var source = CurrentStage.Sources[session.ActiveSourceIndex];
-            return $"APPLYING {source.Color} {session.ActiveSourceIndex + 1}/{CurrentStage.Sources.Count}";
+            return $"Applying {source.Color}...";
         }
 
         private Color GetSourceColor(BoxColor color)
