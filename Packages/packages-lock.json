@@ -10,6 +10,12 @@
       },
       "hash": "78ee5418415953b79c358bfe6355fcc3fde7912b"
     },
+    "com.lickelon.editor-tools": {
+      "version": "file:com.lickelon.editor-tools",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.2d.animation": {
       "version": "13.0.5",
       "depth": 0,
