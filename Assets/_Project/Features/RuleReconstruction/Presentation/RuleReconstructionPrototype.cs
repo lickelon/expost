@@ -21,6 +21,7 @@ namespace Expost.RuleReconstruction
         private readonly Dictionary<BoxColor, Text> rangeValueTexts = new();
         private readonly Dictionary<BoxColor, RulePreviewView> previewViews = new();
         private readonly Dictionary<BoxColor, Image> rulePanelImages = new();
+        private readonly Dictionary<BoxColor, Outline> rulePanelOutlines = new();
         private readonly List<BoardCellView> boardCells = new();
 
         private RuleReconstructionSession session;
@@ -46,7 +47,9 @@ namespace Expost.RuleReconstruction
         private readonly Color pageColor = new(0.18f, 0.29f, 0.47f);
         private readonly Color panelColor = new(0.13f, 0.23f, 0.39f);
         private readonly Color cellColor = new(0.16f, 0.17f, 0.19f);
-        private readonly Color buttonColor = new(0.38f, 0.43f, 0.50f);
+        private readonly Color buttonColor = new(0.28f, 0.37f, 0.50f);
+        private readonly Color rulePanelColor = new(0.17f, 0.29f, 0.48f);
+        private readonly Color selectedRuleOutlineColor = new(0.54f, 0.93f, 1f);
         private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
         private readonly Color wrongTextColor = new(1f, 0.86f, 0.20f);
         private readonly Color clearTextColor = new(0.35f, 0.95f, 0.56f);
@@ -160,6 +163,7 @@ namespace Expost.RuleReconstruction
             rangeValueTexts.Clear();
             previewViews.Clear();
             rulePanelImages.Clear();
+            rulePanelOutlines.Clear();
 
             foreach (Transform child in sidebar)
             {
@@ -183,8 +187,8 @@ namespace Expost.RuleReconstruction
             }
 
             analysisText = CreateText("StageAnalysis", content, string.Empty, 12, TextAnchor.MiddleLeft);
-            var analysisHeight = stageColors.Count >= 4 ? 0f : 34f;
-            Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y - analysisHeight), new Vector2(0f, y));
+            Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y), new Vector2(0f, y));
+            analysisText.gameObject.SetActive(false);
 
             var actionRoot = CreatePanel("Actions", sidebar, Color.clear);
             Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 158f));
@@ -207,6 +211,11 @@ namespace Expost.RuleReconstruction
             var panelRect = panel.GetComponent<RectTransform>();
             Anchor(panelRect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top - 66f), new Vector2(0f, top));
             rulePanelImages[color] = panel.targetGraphic as Image;
+            var outline = panel.gameObject.AddComponent<Outline>();
+            outline.effectColor = selectedRuleOutlineColor;
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.enabled = false;
+            rulePanelOutlines[color] = outline;
 
             var label = CreateText($"{color}Label", panelRect, $"{color} Rule", 14, TextAnchor.MiddleLeft);
             Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(8f, -18f), new Vector2(-8f, -2f));
@@ -324,9 +333,7 @@ namespace Expost.RuleReconstruction
             resultBannerText.color = GetResultTextColor();
             resultBannerText.enabled = !string.IsNullOrEmpty(resultBannerText.text);
 
-            var analysis = session.StageAnalysis;
-            var analysisLabel = analysis.HasUniqueSolution ? "Unique" : $"{analysis.MatchingRuleCount} Solutions";
-            analysisText.text = StageRuleAnalyzer.GetStageColors(CurrentStage).Count >= 4 ? string.Empty : $"Stage Check\n{analysisLabel} / Tested {analysis.TestedRuleCount}";
+            analysisText.text = string.Empty;
         }
 
         private void UpdateRuleButtons()
@@ -335,7 +342,8 @@ namespace Expost.RuleReconstruction
             {
                 directionValueTexts[color].text = $"Target: {session.GetDirection(color)}";
                 rangeValueTexts[color].text = $"Range: {FormatRange(session.GetRange(color))}";
-                rulePanelImages[color].color = color == selectedRuleColor ? new Color(0.22f, 0.36f, 0.58f) : buttonColor;
+                rulePanelImages[color].color = rulePanelColor;
+                rulePanelOutlines[color].enabled = color == selectedRuleColor;
             }
         }
 
