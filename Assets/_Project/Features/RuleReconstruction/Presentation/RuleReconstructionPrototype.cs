@@ -20,12 +20,14 @@ namespace Expost.RuleReconstruction
         private readonly Dictionary<BoxColor, Text> directionValueTexts = new();
         private readonly Dictionary<BoxColor, Text> rangeValueTexts = new();
         private readonly Dictionary<BoxColor, RulePreviewView> previewViews = new();
+        private readonly Dictionary<BoxColor, Image> rulePanelImages = new();
         private readonly List<BoardCellView> boardCells = new();
 
         private RuleReconstructionSession session;
         private BoardState displayBoard;
         private HashSet<GridPosition> activeAffectedCells = new();
         private Coroutine runRoutine;
+        private BoxColor selectedRuleColor;
         private bool isRunning;
         private bool showResult;
         private bool showMismatch;
@@ -75,7 +77,8 @@ namespace Expost.RuleReconstruction
             }
 
             session = new RuleReconstructionSession(StageRepository.LoadStages(), AllColors);
-            uiFont = Font.CreateDynamicFontFromOSFont(new[] { "SF Pro", "Arial", "Helvetica" }, 18);
+            selectedRuleColor = StageRuleAnalyzer.GetStageColors(CurrentStage)[0];
+            uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
             CreateCanvas();
             BuildLayout();
@@ -156,6 +159,7 @@ namespace Expost.RuleReconstruction
             directionValueTexts.Clear();
             rangeValueTexts.Clear();
             previewViews.Clear();
+            rulePanelImages.Clear();
 
             foreach (Transform child in sidebar)
             {
@@ -163,47 +167,92 @@ namespace Expost.RuleReconstruction
             }
 
             var content = CreatePanel("SidebarContent", sidebar, Color.clear);
-            Stretch(content, Vector2.zero, Vector2.one, new Vector2(14f, 118f), new Vector2(-14f, -14f));
+            Stretch(content, Vector2.zero, Vector2.one, new Vector2(14f, 168f), new Vector2(-14f, -14f));
 
             var y = -2f;
-            foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
+            var stageColors = StageRuleAnalyzer.GetStageColors(CurrentStage);
+            if (!ContainsColor(stageColors, selectedRuleColor))
+            {
+                selectedRuleColor = stageColors[0];
+            }
+
+            foreach (var color in stageColors)
             {
                 AddRuleControls(content, color, y);
                 y -= 70f;
             }
 
             analysisText = CreateText("StageAnalysis", content, string.Empty, 12, TextAnchor.MiddleLeft);
-            Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y - 34f), new Vector2(0f, y));
+            var analysisHeight = stageColors.Count >= 4 ? 0f : 34f;
+            Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y - analysisHeight), new Vector2(0f, y));
 
             var actionRoot = CreatePanel("Actions", sidebar, Color.clear);
-            Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 112f));
+            Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 158f));
+
+            AddBlockTray(actionRoot);
 
             var runButton = CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
-            Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -30f), Vector2.zero);
+            Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -100f), new Vector2(0f, -78f));
 
             var resetButton = CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
-            Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -66f), new Vector2(0f, -36f));
+            Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -126f), new Vector2(0f, -104f));
 
             statusText = CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
-            Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 26f));
+            Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));
         }
 
         private void AddRuleControls(RectTransform parent, BoxColor color, float top)
         {
-            var label = CreateText($"{color}Label", parent, $"{color} Rule", 14, TextAnchor.MiddleLeft);
-            Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top - 18f), new Vector2(0f, top));
+            var panel = CreateButton($"{color}RulePanel", parent, string.Empty, 1, () => SelectRuleColor(color));
+            var panelRect = panel.GetComponent<RectTransform>();
+            Anchor(panelRect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top - 66f), new Vector2(0f, top));
+            rulePanelImages[color] = panel.targetGraphic as Image;
 
-            var preview = CreateRulePreview($"{color}Preview", parent);
-            Anchor(preview.Root, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, top - 62f), new Vector2(52f, top - 20f));
+            var label = CreateText($"{color}Label", panelRect, $"{color} Rule", 14, TextAnchor.MiddleLeft);
+            Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(8f, -18f), new Vector2(-8f, -2f));
+
+            var preview = CreateRulePreview($"{color}Preview", panelRect);
+            Anchor(preview.Root, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(8f, -55f), new Vector2(42f, -21f));
             previewViews[color] = preview;
 
-            var directionButton = CreateButton($"{color}Direction", parent, string.Empty, 11, () => CycleDirection(color));
-            Anchor(directionButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(58f, top - 44f), new Vector2(0f, top - 20f));
+            var directionButton = CreateButton($"{color}Direction", panelRect, string.Empty, 11, () => SelectRuleColor(color));
+            Anchor(directionButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(52f, -36f), new Vector2(-8f, -20f));
             directionValueTexts[color] = directionButton.GetComponentInChildren<Text>();
 
-            var rangeButton = CreateButton($"{color}Range", parent, string.Empty, 11, () => CycleRange(color));
-            Anchor(rangeButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(58f, top - 68f), new Vector2(0f, top - 46f));
+            var rangeButton = CreateButton($"{color}Range", panelRect, string.Empty, 11, () => SelectRuleColor(color));
+            Anchor(rangeButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(52f, -54f), new Vector2(-8f, -38f));
             rangeValueTexts[color] = rangeButton.GetComponentInChildren<Text>();
+
+            var effectButton = CreateButton($"{color}Effect", panelRect, "Effect: +1", 9, () => SelectRuleColor(color));
+            Anchor(effectButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(52f, 2f), new Vector2(-8f, 13f));
+        }
+
+        private void AddBlockTray(RectTransform parent)
+        {
+            var label = CreateText("BlocksLabel", parent, "Blocks", 13, TextAnchor.MiddleLeft);
+            Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -18f), Vector2.zero);
+
+            var gridRoot = CreatePanel("BlockGrid", parent, Color.clear);
+            Anchor(gridRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -76f), new Vector2(0f, -22f));
+            var grid = gridRoot.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 3;
+            grid.cellSize = new Vector2(60f, 16f);
+            grid.spacing = new Vector2(4f, 3f);
+
+            AddBlockButton(gridRoot, "Cross", () => ApplyDirectionBlock(DirectionType.Cross));
+            AddBlockButton(gridRoot, "Diag", () => ApplyDirectionBlock(DirectionType.Diagonal));
+            AddBlockButton(gridRoot, "H", () => ApplyDirectionBlock(DirectionType.Horizontal));
+            AddBlockButton(gridRoot, "V", () => ApplyDirectionBlock(DirectionType.Vertical));
+            AddBlockButton(gridRoot, "All", () => ApplyDirectionBlock(DirectionType.AllAround));
+            AddBlockButton(gridRoot, "1 Tile", () => ApplyRangeBlock(RangeType.One));
+            AddBlockButton(gridRoot, "2 Tile", () => ApplyRangeBlock(RangeType.Two));
+            AddBlockButton(gridRoot, "+1", () => SelectRuleColor(selectedRuleColor));
+        }
+
+        private void AddBlockButton(RectTransform parent, string label, UnityEngine.Events.UnityAction onClick)
+        {
+            CreateButton($"Block{label}", parent, label, 10, onClick);
         }
 
         private void BuildBoardCells()
@@ -277,15 +326,16 @@ namespace Expost.RuleReconstruction
 
             var analysis = session.StageAnalysis;
             var analysisLabel = analysis.HasUniqueSolution ? "Unique" : $"{analysis.MatchingRuleCount} Solutions";
-            analysisText.text = $"Stage Check\n{analysisLabel} / Tested {analysis.TestedRuleCount}";
+            analysisText.text = StageRuleAnalyzer.GetStageColors(CurrentStage).Count >= 4 ? string.Empty : $"Stage Check\n{analysisLabel} / Tested {analysis.TestedRuleCount}";
         }
 
         private void UpdateRuleButtons()
         {
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
-                directionValueTexts[color].text = session.GetDirection(color).ToString();
-                rangeValueTexts[color].text = session.GetRange(color).ToString();
+                directionValueTexts[color].text = $"Target: {session.GetDirection(color)}";
+                rangeValueTexts[color].text = $"Range: {FormatRange(session.GetRange(color))}";
+                rulePanelImages[color].color = color == selectedRuleColor ? new Color(0.22f, 0.36f, 0.58f) : buttonColor;
             }
         }
 
@@ -351,20 +401,26 @@ namespace Expost.RuleReconstruction
         private void MoveStage(int delta)
         {
             session.MoveStage(delta);
+            selectedRuleColor = StageRuleAnalyzer.GetStageColors(CurrentStage)[0];
             ResetDisplay();
             BuildSidebar();
             BuildBoardCells();
         }
 
-        private void CycleDirection(BoxColor color)
+        private void SelectRuleColor(BoxColor color)
         {
-            session.CycleDirection(color);
+            selectedRuleColor = color;
+        }
+
+        private void ApplyDirectionBlock(DirectionType direction)
+        {
+            session.SetDirection(selectedRuleColor, direction);
             ResetDisplay();
         }
 
-        private void CycleRange(BoxColor color)
+        private void ApplyRangeBlock(RangeType range)
         {
-            session.CycleRange(color);
+            session.SetRange(selectedRuleColor, range);
             ResetDisplay();
         }
 
@@ -567,6 +623,29 @@ namespace Expost.RuleReconstruction
                 BoxColor.Yellow => new Color(0.92f, 0.74f, 0.16f),
                 _ => cellColor
             };
+        }
+
+        private static string FormatRange(RangeType range)
+        {
+            return range switch
+            {
+                RangeType.One => "1 Tile",
+                RangeType.Two => "2 Tiles",
+                _ => range.ToString()
+            };
+        }
+
+        private static bool ContainsColor(IReadOnlyList<BoxColor> colors, BoxColor target)
+        {
+            for (var index = 0; index < colors.Count; index++)
+            {
+                if (colors[index] == target)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private RectTransform CreatePanel(string name, Transform parent, Color color)

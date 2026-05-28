@@ -68,10 +68,22 @@ namespace Expost.RuleReconstruction
             ResetSimulation();
         }
 
+        public void SetDirection(BoxColor color, DirectionType direction)
+        {
+            selectedDirections[color] = direction;
+            ResetSimulation();
+        }
+
         public void CycleRange(BoxColor color)
         {
             var nextIndex = (IndexOf(RangeOptions, selectedRanges[color]) + 1) % RangeOptions.Length;
             selectedRanges[color] = RangeOptions[nextIndex];
+            ResetSimulation();
+        }
+
+        public void SetRange(BoxColor color, RangeType range)
+        {
+            selectedRanges[color] = range;
             ResetSimulation();
         }
 
