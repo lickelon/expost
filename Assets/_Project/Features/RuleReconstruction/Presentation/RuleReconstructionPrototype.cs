@@ -171,7 +171,7 @@ namespace Expost.RuleReconstruction
             }
 
             var content = CreatePanel("SidebarContent", sidebar, Color.clear);
-            Stretch(content, Vector2.zero, Vector2.one, new Vector2(14f, 168f), new Vector2(-14f, -14f));
+            Stretch(content, Vector2.zero, Vector2.one, new Vector2(14f, 198f), new Vector2(-14f, -14f));
 
             var y = -2f;
             var stageColors = StageRuleAnalyzer.GetStageColors(CurrentStage);
@@ -191,15 +191,15 @@ namespace Expost.RuleReconstruction
             analysisText.gameObject.SetActive(false);
 
             var actionRoot = CreatePanel("Actions", sidebar, Color.clear);
-            Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 158f));
+            Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 188f));
 
             AddBlockTray(actionRoot);
 
             var runButton = CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
-            Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -100f), new Vector2(0f, -78f));
+            Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -132f), new Vector2(0f, -108f));
 
             var resetButton = CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
-            Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -126f), new Vector2(0f, -104f));
+            Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -160f), new Vector2(0f, -136f));
 
             statusText = CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
             Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));
@@ -213,7 +213,7 @@ namespace Expost.RuleReconstruction
             rulePanelImages[color] = panel.targetGraphic as Image;
             var outline = panel.gameObject.AddComponent<Outline>();
             outline.effectColor = selectedRuleOutlineColor;
-            outline.effectDistance = new Vector2(2f, -2f);
+            outline.effectDistance = new Vector2(1f, -1f);
             outline.enabled = false;
             rulePanelOutlines[color] = outline;
 
@@ -238,30 +238,100 @@ namespace Expost.RuleReconstruction
 
         private void AddBlockTray(RectTransform parent)
         {
-            var label = CreateText("BlocksLabel", parent, "Blocks", 13, TextAnchor.MiddleLeft);
-            Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -18f), Vector2.zero);
+            var directionRoot = CreatePanel("DirectionBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
+            Anchor(directionRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -40f), new Vector2(0f, -2f));
+            AddSectionAccent(directionRoot, new Color(0.54f, 0.93f, 1f));
+            var directionGrid = directionRoot.gameObject.AddComponent<GridLayoutGroup>();
+            directionGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            directionGrid.constraintCount = 5;
+            directionGrid.cellSize = new Vector2(38f, 30f);
+            directionGrid.spacing = new Vector2(7f, 0f);
+            directionGrid.padding = new RectOffset(10, 0, 5, 0);
 
-            var gridRoot = CreatePanel("BlockGrid", parent, Color.clear);
-            Anchor(gridRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -76f), new Vector2(0f, -22f));
-            var grid = gridRoot.gameObject.AddComponent<GridLayoutGroup>();
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = 3;
-            grid.cellSize = new Vector2(60f, 16f);
-            grid.spacing = new Vector2(4f, 3f);
+            AddDirectionBlockButton(directionRoot, DirectionType.Cross, () => ApplyDirectionBlock(DirectionType.Cross));
+            AddDirectionBlockButton(directionRoot, DirectionType.Diagonal, () => ApplyDirectionBlock(DirectionType.Diagonal));
+            AddDirectionBlockButton(directionRoot, DirectionType.Horizontal, () => ApplyDirectionBlock(DirectionType.Horizontal));
+            AddDirectionBlockButton(directionRoot, DirectionType.Vertical, () => ApplyDirectionBlock(DirectionType.Vertical));
+            AddDirectionBlockButton(directionRoot, DirectionType.AllAround, () => ApplyDirectionBlock(DirectionType.AllAround));
 
-            AddBlockButton(gridRoot, "Cross", () => ApplyDirectionBlock(DirectionType.Cross));
-            AddBlockButton(gridRoot, "Diag", () => ApplyDirectionBlock(DirectionType.Diagonal));
-            AddBlockButton(gridRoot, "H", () => ApplyDirectionBlock(DirectionType.Horizontal));
-            AddBlockButton(gridRoot, "V", () => ApplyDirectionBlock(DirectionType.Vertical));
-            AddBlockButton(gridRoot, "All", () => ApplyDirectionBlock(DirectionType.AllAround));
-            AddBlockButton(gridRoot, "1 Tile", () => ApplyRangeBlock(RangeType.One));
-            AddBlockButton(gridRoot, "2 Tile", () => ApplyRangeBlock(RangeType.Two));
-            AddBlockButton(gridRoot, "+1", () => SelectRuleColor(selectedRuleColor));
+            var rangeRoot = CreatePanel("RangeBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
+            Anchor(rangeRoot, new Vector2(0f, 1f), new Vector2(0.52f, 1f), new Vector2(0f, -84f), new Vector2(-4f, -46f));
+            AddSectionAccent(rangeRoot, new Color(0.35f, 0.95f, 0.56f));
+            var rangeGrid = rangeRoot.gameObject.AddComponent<GridLayoutGroup>();
+            rangeGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            rangeGrid.constraintCount = 2;
+            rangeGrid.cellSize = new Vector2(38f, 30f);
+            rangeGrid.spacing = new Vector2(7f, 0f);
+            rangeGrid.padding = new RectOffset(10, 0, 5, 0);
+
+            AddRangeBlockButton(rangeRoot, RangeType.One, () => ApplyRangeBlock(RangeType.One));
+            AddRangeBlockButton(rangeRoot, RangeType.Two, () => ApplyRangeBlock(RangeType.Two));
+
+            var effectRoot = CreatePanel("EffectBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
+            Anchor(effectRoot, new Vector2(0.52f, 1f), new Vector2(1f, 1f), new Vector2(4f, -84f), new Vector2(0f, -46f));
+            AddSectionAccent(effectRoot, new Color(1f, 0.86f, 0.20f));
+            AddEffectBlockButton(effectRoot, () => SelectRuleColor(selectedRuleColor));
         }
 
-        private void AddBlockButton(RectTransform parent, string label, UnityEngine.Events.UnityAction onClick)
+        private void AddSectionAccent(RectTransform parent, Color color)
         {
-            CreateButton($"Block{label}", parent, label, 10, onClick);
+            var outline = parent.gameObject.AddComponent<Outline>();
+            outline.effectColor = color;
+            outline.effectDistance = new Vector2(1f, -1f);
+        }
+
+        private void AddDirectionBlockButton(RectTransform parent, DirectionType direction, UnityEngine.Events.UnityAction onClick)
+        {
+            var button = CreateIconButton($"Block{direction}", parent, onClick);
+            var icon = CreateRulePreview($"{direction}Icon", button.transform);
+            Stretch(icon.Root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-12f, -12f), new Vector2(12f, 12f));
+            var grid = icon.Root.GetComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(7f, 7f);
+            grid.spacing = new Vector2(1f, 1f);
+
+            var affected = GetPreviewAffectedCells(direction);
+            for (var index = 0; index < icon.Cells.Count; index++)
+            {
+                if (index == 4)
+                {
+                    icon.Cells[index].color = new Color(0.88f, 0.22f, 0.18f);
+                }
+                else
+                {
+                    icon.Cells[index].color = affected.Contains(index) ? affectedTextColor : new Color(0.26f, 0.34f, 0.46f);
+                }
+            }
+        }
+
+        private void AddRangeBlockButton(RectTransform parent, RangeType range, UnityEngine.Events.UnityAction onClick)
+        {
+            var button = CreateIconButton($"Block{range}", parent, onClick);
+            var center = CreatePanel("CenterDot", button.transform, affectedTextColor);
+            Anchor(center, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -3f), new Vector2(3f, 3f));
+
+            var radius = range == RangeType.One ? 8f : 13f;
+            AddRangeDot(button.transform, new Vector2(0f, radius));
+            AddRangeDot(button.transform, new Vector2(radius, 0f));
+            AddRangeDot(button.transform, new Vector2(0f, -radius));
+            AddRangeDot(button.transform, new Vector2(-radius, 0f));
+        }
+
+        private void AddRangeDot(Transform parent, Vector2 offset)
+        {
+            var dot = CreatePanel("RangeDot", parent, new Color(0.54f, 0.93f, 1f, 0.62f));
+            Anchor(dot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), offset + new Vector2(-3f, -3f), offset + new Vector2(3f, 3f));
+        }
+
+        private void AddEffectBlockButton(RectTransform parent, UnityEngine.Events.UnityAction onClick)
+        {
+            var button = CreateIconButton("BlockEffect", parent, onClick);
+            Anchor(button.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(10f, -15f), new Vector2(48f, 15f));
+
+            var horizontal = CreatePanel("PlusHorizontal", button.transform, affectedTextColor);
+            Anchor(horizontal, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-10f, -2f), new Vector2(10f, 2f));
+
+            var vertical = CreatePanel("PlusVertical", button.transform, affectedTextColor);
+            Anchor(vertical, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-2f, -10f), new Vector2(2f, 10f));
         }
 
         private void BuildBoardCells()
@@ -690,6 +760,15 @@ namespace Expost.RuleReconstruction
 
             var text = CreateText("Text", rectTransform, label, fontSize, TextAnchor.MiddleCenter);
             Stretch(text.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            return button;
+        }
+
+        private Button CreateIconButton(string name, Transform parent, UnityEngine.Events.UnityAction onClick)
+        {
+            var rectTransform = CreatePanel(name, parent, buttonColor);
+            var button = rectTransform.gameObject.AddComponent<Button>();
+            button.targetGraphic = rectTransform.GetComponent<Image>();
+            button.onClick.AddListener(onClick);
             return button;
         }
 
