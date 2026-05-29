@@ -17,9 +17,9 @@ namespace Expost.RuleReconstruction
             BoxColor.Yellow
         };
 
-        private readonly Dictionary<BoxColor, Text> directionValueTexts = new();
-        private readonly Dictionary<BoxColor, Text> rangeValueTexts = new();
+        private readonly Dictionary<BoxColor, Image> sourceSlotImages = new();
         private readonly Dictionary<BoxColor, RulePreviewView> previewViews = new();
+        private readonly Dictionary<BoxColor, RangeIconView> rangeIconViews = new();
         private readonly Dictionary<BoxColor, Image> rulePanelImages = new();
         private readonly Dictionary<BoxColor, Outline> rulePanelOutlines = new();
         private readonly List<BoardCellView> boardCells = new();
@@ -159,9 +159,9 @@ namespace Expost.RuleReconstruction
 
         private void BuildSidebar()
         {
-            directionValueTexts.Clear();
-            rangeValueTexts.Clear();
+            sourceSlotImages.Clear();
             previewViews.Clear();
+            rangeIconViews.Clear();
             rulePanelImages.Clear();
             rulePanelOutlines.Clear();
 
@@ -183,7 +183,7 @@ namespace Expost.RuleReconstruction
             foreach (var color in stageColors)
             {
                 AddRuleControls(content, color, y);
-                y -= 70f;
+                y -= 58f;
             }
 
             analysisText = CreateText("StageAnalysis", content, string.Empty, 12, TextAnchor.MiddleLeft);
@@ -209,7 +209,7 @@ namespace Expost.RuleReconstruction
         {
             var panel = CreateButton($"{color}RulePanel", parent, string.Empty, 1, () => SelectRuleColor(color));
             var panelRect = panel.GetComponent<RectTransform>();
-            Anchor(panelRect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top - 66f), new Vector2(0f, top));
+            Anchor(panelRect, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top - 54f), new Vector2(0f, top));
             rulePanelImages[color] = panel.targetGraphic as Image;
             var outline = panel.gameObject.AddComponent<Outline>();
             outline.effectColor = selectedRuleOutlineColor;
@@ -217,23 +217,26 @@ namespace Expost.RuleReconstruction
             outline.enabled = false;
             rulePanelOutlines[color] = outline;
 
-            var label = CreateText($"{color}Label", panelRect, $"{color} Rule", 14, TextAnchor.MiddleLeft);
-            Anchor(label.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(8f, -18f), new Vector2(-8f, -2f));
+            var sourceButton = CreateIconButton($"{color}Source", panelRect, () => SelectRuleColor(color));
+            Anchor(sourceButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(8f, -18f), new Vector2(44f, 18f));
+            var sourceSwatch = CreatePanel($"{color}SourceSwatch", sourceButton.transform, GetSourceColor(color));
+            Stretch(sourceSwatch, Vector2.zero, Vector2.one, new Vector2(8f, 8f), new Vector2(-8f, -8f));
+            sourceSlotImages[color] = sourceSwatch.GetComponent<Image>();
 
-            var preview = CreateRulePreview($"{color}Preview", panelRect);
-            Anchor(preview.Root, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(8f, -55f), new Vector2(42f, -21f));
-            previewViews[color] = preview;
+            var directionButton = CreateIconButton($"{color}Direction", panelRect, () => SelectRuleColor(color));
+            Anchor(directionButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(52f, -18f), new Vector2(88f, 18f));
+            var directionPreview = CreateRulePreview($"{color}DirectionIcon", directionButton.transform);
+            AnchorIconPreview(directionPreview.Root);
+            ConfigureSmallPreview(directionPreview.Root);
+            previewViews[color] = directionPreview;
 
-            var directionButton = CreateButton($"{color}Direction", panelRect, string.Empty, 11, () => SelectRuleColor(color));
-            Anchor(directionButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(52f, -36f), new Vector2(-8f, -20f));
-            directionValueTexts[color] = directionButton.GetComponentInChildren<Text>();
+            var rangeButton = CreateIconButton($"{color}Range", panelRect, () => SelectRuleColor(color));
+            Anchor(rangeButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(96f, -18f), new Vector2(132f, 18f));
+            rangeIconViews[color] = CreateRangeIcon($"{color}RangeIcon", rangeButton.transform);
 
-            var rangeButton = CreateButton($"{color}Range", panelRect, string.Empty, 11, () => SelectRuleColor(color));
-            Anchor(rangeButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(52f, -54f), new Vector2(-8f, -38f));
-            rangeValueTexts[color] = rangeButton.GetComponentInChildren<Text>();
-
-            var effectButton = CreateButton($"{color}Effect", panelRect, "Effect: +1", 9, () => SelectRuleColor(color));
-            Anchor(effectButton.GetComponent<RectTransform>(), new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(52f, 2f), new Vector2(-8f, 13f));
+            var effectButton = CreateIconButton($"{color}Effect", panelRect, () => SelectRuleColor(color));
+            Anchor(effectButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(140f, -18f), new Vector2(176f, 18f));
+            AddPlusIcon(effectButton.transform, new Vector2(10f, 2f));
         }
 
         private void AddBlockTray(RectTransform parent)
@@ -284,10 +287,8 @@ namespace Expost.RuleReconstruction
         {
             var button = CreateIconButton($"Block{direction}", parent, onClick);
             var icon = CreateRulePreview($"{direction}Icon", button.transform);
-            Stretch(icon.Root, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-12f, -12f), new Vector2(12f, 12f));
-            var grid = icon.Root.GetComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(7f, 7f);
-            grid.spacing = new Vector2(1f, 1f);
+            AnchorIconPreview(icon.Root);
+            ConfigureSmallPreview(icon.Root);
 
             var affected = GetPreviewAffectedCells(direction);
             for (var index = 0; index < icon.Cells.Count; index++)
@@ -306,20 +307,40 @@ namespace Expost.RuleReconstruction
         private void AddRangeBlockButton(RectTransform parent, RangeType range, UnityEngine.Events.UnityAction onClick)
         {
             var button = CreateIconButton($"Block{range}", parent, onClick);
-            var center = CreatePanel("CenterDot", button.transform, affectedTextColor);
-            Anchor(center, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -3f), new Vector2(3f, 3f));
-
-            var radius = range == RangeType.One ? 8f : 13f;
-            AddRangeDot(button.transform, new Vector2(0f, radius));
-            AddRangeDot(button.transform, new Vector2(radius, 0f));
-            AddRangeDot(button.transform, new Vector2(0f, -radius));
-            AddRangeDot(button.transform, new Vector2(-radius, 0f));
+            var icon = CreateRangeIcon($"{range}Icon", button.transform);
+            UpdateRangeIcon(icon, range);
         }
 
-        private void AddRangeDot(Transform parent, Vector2 offset)
+        private RangeIconView CreateRangeIcon(string name, Transform parent)
+        {
+            var root = CreatePanel(name, parent, Color.clear);
+            Stretch(root, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+
+            var center = CreatePanel("CenterDot", root, affectedTextColor);
+            Anchor(center, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -3f), new Vector2(3f, 3f));
+
+            var dots = new List<RectTransform>();
+            for (var index = 0; index < 4; index++)
+            {
+                dots.Add(CreateRangeDot(root));
+            }
+
+            return new RangeIconView(root, center, dots);
+        }
+
+        private RectTransform CreateRangeDot(Transform parent)
         {
             var dot = CreatePanel("RangeDot", parent, new Color(0.54f, 0.93f, 1f, 0.62f));
-            Anchor(dot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), offset + new Vector2(-3f, -3f), offset + new Vector2(3f, 3f));
+            return dot;
+        }
+
+        private void UpdateRangeIcon(RangeIconView icon, RangeType range)
+        {
+            var radius = range == RangeType.One ? 8f : 13f;
+            Anchor(icon.Dots[0], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, radius - 3f), new Vector2(3f, radius + 3f));
+            Anchor(icon.Dots[1], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(radius - 3f, -3f), new Vector2(radius + 3f, 3f));
+            Anchor(icon.Dots[2], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -radius - 3f), new Vector2(3f, -radius + 3f));
+            Anchor(icon.Dots[3], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-radius - 3f, -3f), new Vector2(-radius + 3f, 3f));
         }
 
         private void AddEffectBlockButton(RectTransform parent, UnityEngine.Events.UnityAction onClick)
@@ -327,11 +348,16 @@ namespace Expost.RuleReconstruction
             var button = CreateIconButton("BlockEffect", parent, onClick);
             Anchor(button.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(10f, -15f), new Vector2(48f, 15f));
 
-            var horizontal = CreatePanel("PlusHorizontal", button.transform, affectedTextColor);
-            Anchor(horizontal, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-10f, -2f), new Vector2(10f, 2f));
+            AddPlusIcon(button.transform, new Vector2(10f, 2f));
+        }
 
-            var vertical = CreatePanel("PlusVertical", button.transform, affectedTextColor);
-            Anchor(vertical, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-2f, -10f), new Vector2(2f, 10f));
+        private void AddPlusIcon(Transform parent, Vector2 halfSize)
+        {
+            var horizontal = CreatePanel("PlusHorizontal", parent, affectedTextColor);
+            Anchor(horizontal, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-halfSize.x, -halfSize.y), new Vector2(halfSize.x, halfSize.y));
+
+            var vertical = CreatePanel("PlusVertical", parent, affectedTextColor);
+            Anchor(vertical, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-halfSize.y, -halfSize.x), new Vector2(halfSize.y, halfSize.x));
         }
 
         private void BuildBoardCells()
@@ -410,10 +436,9 @@ namespace Expost.RuleReconstruction
         {
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
-                directionValueTexts[color].text = $"Target: {session.GetDirection(color)}";
-                rangeValueTexts[color].text = $"Range: {FormatRange(session.GetRange(color))}";
                 rulePanelImages[color].color = rulePanelColor;
                 rulePanelOutlines[color].enabled = color == selectedRuleColor;
+                UpdateRangeIcon(rangeIconViews[color], session.GetRange(color));
             }
         }
 
@@ -421,6 +446,8 @@ namespace Expost.RuleReconstruction
         {
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
+                sourceSlotImages[color].color = GetSourceColor(color);
+
                 var preview = previewViews[color];
                 var affected = GetPreviewAffectedCells(session.GetDirection(color));
 
@@ -703,16 +730,6 @@ namespace Expost.RuleReconstruction
             };
         }
 
-        private static string FormatRange(RangeType range)
-        {
-            return range switch
-            {
-                RangeType.One => "1 Tile",
-                RangeType.Two => "2 Tiles",
-                _ => range.ToString()
-            };
-        }
-
         private static bool ContainsColor(IReadOnlyList<BoxColor> colors, BoxColor target)
         {
             for (var index = 0; index < colors.Count; index++)
@@ -770,6 +787,18 @@ namespace Expost.RuleReconstruction
             button.targetGraphic = rectTransform.GetComponent<Image>();
             button.onClick.AddListener(onClick);
             return button;
+        }
+
+        private static void AnchorIconPreview(RectTransform rectTransform)
+        {
+            Stretch(rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-12f, -12f), new Vector2(12f, 12f));
+        }
+
+        private static void ConfigureSmallPreview(RectTransform rectTransform)
+        {
+            var grid = rectTransform.GetComponent<GridLayoutGroup>();
+            grid.cellSize = new Vector2(7f, 7f);
+            grid.spacing = new Vector2(1f, 1f);
         }
 
         private RulePreviewView CreateRulePreview(string name, Transform parent)
@@ -892,6 +921,20 @@ namespace Expost.RuleReconstruction
             {
                 Root = root;
                 Cells = cells;
+            }
+        }
+
+        private readonly struct RangeIconView
+        {
+            public readonly RectTransform Root;
+            public readonly RectTransform Center;
+            public readonly List<RectTransform> Dots;
+
+            public RangeIconView(RectTransform root, RectTransform center, List<RectTransform> dots)
+            {
+                Root = root;
+                Center = center;
+                Dots = dots;
             }
         }
     }
