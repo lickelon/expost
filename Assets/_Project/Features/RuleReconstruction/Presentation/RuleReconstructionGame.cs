@@ -65,6 +65,9 @@ namespace Expost.RuleReconstruction
         private readonly Color buttonColor = new(0.28f, 0.37f, 0.50f);
         private readonly Color rulePanelColor = new(0.17f, 0.29f, 0.48f);
         private readonly Color selectedRuleOutlineColor = new(0.54f, 0.93f, 1f);
+        private readonly Color directionSlotOutlineColor = new(0.54f, 0.93f, 1f);
+        private readonly Color rangeSlotOutlineColor = new(1f, 0.86f, 0.20f);
+        private readonly Color effectSlotOutlineColor = new(0.35f, 0.95f, 0.56f);
         private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
         private readonly Color wrongTextColor = new(1f, 0.86f, 0.20f);
         private readonly Color clearTextColor = new(0.35f, 0.95f, 0.56f);
@@ -320,12 +323,14 @@ namespace Expost.RuleReconstruction
 
             var sourceButton = ui.CreateIconButton($"{color}Source", panelRect, () => SelectRuleColor(color));
             RuleReconstructionUiFactory.Anchor(sourceButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(8f, -18f), new Vector2(44f, 18f));
+            AddStaticOutline(sourceButton.gameObject, GetSourceColor(color), 1f);
             var sourceSwatch = ui.CreatePanel($"{color}SourceSwatch", sourceButton.transform, GetSourceColor(color));
             RuleReconstructionUiFactory.Stretch(sourceSwatch, Vector2.zero, Vector2.one, new Vector2(8f, 8f), new Vector2(-8f, -8f));
             sourceSlotImages[color] = sourceSwatch.GetComponent<Image>();
 
             var directionButton = ui.CreateIconButton($"{color}Direction", panelRect, () => SelectRuleColor(color));
             RuleReconstructionUiFactory.Anchor(directionButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(52f, -18f), new Vector2(88f, 18f));
+            AddStaticOutline(directionButton.gameObject, directionSlotOutlineColor, 1f);
             var directionPreview = CreateRulePreview($"{color}DirectionIcon", directionButton.transform);
             AnchorIconPreview(directionPreview.Root);
             ConfigureSmallPreview(directionPreview.Root);
@@ -333,10 +338,12 @@ namespace Expost.RuleReconstruction
 
             var rangeButton = ui.CreateIconButton($"{color}Range", panelRect, () => SelectRuleColor(color));
             RuleReconstructionUiFactory.Anchor(rangeButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(96f, -18f), new Vector2(132f, 18f));
+            AddStaticOutline(rangeButton.gameObject, rangeSlotOutlineColor, 1f);
             rangeIconViews[color] = CreateRangeIcon($"{color}RangeIcon", rangeButton.transform);
 
             var effectButton = ui.CreateIconButton($"{color}Effect", panelRect, () => SelectRuleColor(color));
             RuleReconstructionUiFactory.Anchor(effectButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(140f, -18f), new Vector2(176f, 18f));
+            AddStaticOutline(effectButton.gameObject, effectSlotOutlineColor, 1f);
             effectIconTexts[color] = CreateEffectText($"{color}EffectText", effectButton.transform, EffectType.AddNumber, 17);
         }
 
@@ -344,7 +351,7 @@ namespace Expost.RuleReconstruction
         {
             var directionRoot = ui.CreatePanel("DirectionBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
             RuleReconstructionUiFactory.Anchor(directionRoot, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -40f), new Vector2(0f, -2f));
-            AddSectionAccent(directionRoot, new Color(0.54f, 0.93f, 1f));
+            AddStaticOutline(directionRoot.gameObject, directionSlotOutlineColor, 1f);
             var directionGrid = directionRoot.gameObject.AddComponent<GridLayoutGroup>();
             directionGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             directionGrid.constraintCount = 5;
@@ -360,7 +367,7 @@ namespace Expost.RuleReconstruction
 
             var rangeRoot = ui.CreatePanel("RangeBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
             RuleReconstructionUiFactory.Anchor(rangeRoot, new Vector2(0f, 1f), new Vector2(0.52f, 1f), new Vector2(0f, -84f), new Vector2(-4f, -46f));
-            AddSectionAccent(rangeRoot, new Color(0.35f, 0.95f, 0.56f));
+            AddStaticOutline(rangeRoot.gameObject, rangeSlotOutlineColor, 1f);
             var rangeGrid = rangeRoot.gameObject.AddComponent<GridLayoutGroup>();
             rangeGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             rangeGrid.constraintCount = 2;
@@ -373,7 +380,7 @@ namespace Expost.RuleReconstruction
 
             var effectRoot = ui.CreatePanel("EffectBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
             RuleReconstructionUiFactory.Anchor(effectRoot, new Vector2(0.52f, 1f), new Vector2(1f, 1f), new Vector2(4f, -84f), new Vector2(0f, -46f));
-            AddSectionAccent(effectRoot, new Color(1f, 0.86f, 0.20f));
+            AddStaticOutline(effectRoot.gameObject, effectSlotOutlineColor, 1f);
             var effectGrid = effectRoot.gameObject.AddComponent<GridLayoutGroup>();
             effectGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             effectGrid.constraintCount = 2;
@@ -385,17 +392,18 @@ namespace Expost.RuleReconstruction
             AddEffectBlockButton(effectRoot, EffectType.SubtractNumber, () => ApplyEffectBlock(EffectType.SubtractNumber));
         }
 
-        private void AddSectionAccent(RectTransform parent, Color color)
+        private static Outline AddStaticOutline(GameObject target, Color color, float size)
         {
-            var outline = parent.gameObject.AddComponent<Outline>();
+            var outline = target.AddComponent<Outline>();
             outline.effectColor = color;
-            outline.effectDistance = new Vector2(1f, -1f);
+            outline.effectDistance = new Vector2(size, -size);
+            return outline;
         }
 
         private void AddDirectionBlockButton(RectTransform parent, DirectionType direction, UnityEngine.Events.UnityAction onClick)
         {
             var button = ui.CreateIconButton($"Block{direction}", parent, onClick);
-            directionBlockOutlines[direction] = AddSelectionOutline(button.gameObject);
+            directionBlockOutlines[direction] = AddSelectionOutline(button.gameObject, directionSlotOutlineColor);
             var icon = CreateRulePreview($"{direction}Icon", button.transform);
             directionBlockPreviews[direction] = icon;
             AnchorIconPreview(icon.Root);
@@ -411,15 +419,15 @@ namespace Expost.RuleReconstruction
         private void AddRangeBlockButton(RectTransform parent, RangeType range, UnityEngine.Events.UnityAction onClick)
         {
             var button = ui.CreateIconButton($"Block{range}", parent, onClick);
-            rangeBlockOutlines[range] = AddSelectionOutline(button.gameObject);
+            rangeBlockOutlines[range] = AddSelectionOutline(button.gameObject, rangeSlotOutlineColor);
             var icon = CreateRangeIcon($"{range}Icon", button.transform);
             UpdateRangeIcon(icon, range);
         }
 
-        private Outline AddSelectionOutline(GameObject target)
+        private Outline AddSelectionOutline(GameObject target, Color color)
         {
             var outline = target.AddComponent<Outline>();
-            outline.effectColor = selectedRuleOutlineColor;
+            outline.effectColor = color;
             outline.effectDistance = new Vector2(2f, -2f);
             outline.enabled = false;
             return outline;
@@ -460,7 +468,7 @@ namespace Expost.RuleReconstruction
         private void AddEffectBlockButton(RectTransform parent, EffectType effect, UnityEngine.Events.UnityAction onClick)
         {
             var button = ui.CreateIconButton($"Block{effect}", parent, onClick);
-            effectBlockOutlines[effect] = AddSelectionOutline(button.gameObject);
+            effectBlockOutlines[effect] = AddSelectionOutline(button.gameObject, effectSlotOutlineColor);
             CreateEffectText($"{effect}Text", button.transform, effect, 17);
         }
 
