@@ -30,7 +30,7 @@ namespace Expost.RuleReconstruction
 
             foreach (var answer in answerRules)
             {
-                stage.AnswerRules.Set(answer.Color, new Rule(answer.Direction, answer.Range, EffectType.AddNumber));
+                stage.AnswerRules.Set(answer.Color, new Rule(answer.Direction, answer.Range, answer.Effect));
             }
 
             stage.TargetBoard = RuleSimulator.Simulate(stage, stage.AnswerRules);
@@ -56,7 +56,7 @@ namespace Expost.RuleReconstruction
             {
                 if (stage.AnswerRules.TryGet(color, out var rule))
                 {
-                    answerRules.Add(new ColorRuleData(color, rule.Direction, rule.Range));
+                    answerRules.Add(new ColorRuleData(color, rule.Direction, rule.Range, rule.Effect));
                 }
             }
         }

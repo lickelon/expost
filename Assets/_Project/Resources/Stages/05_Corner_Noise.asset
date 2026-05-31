@@ -36,9 +36,12 @@ MonoBehaviour:
   - Color: 0
     Direction: 4
     Range: 0
+    Effect: 0
   - Color: 1
     Direction: 0
     Range: 1
+    Effect: 0
   - Color: 2
     Direction: 2
     Range: 1
+    Effect: 0

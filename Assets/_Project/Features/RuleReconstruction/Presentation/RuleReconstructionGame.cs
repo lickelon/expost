@@ -22,11 +22,13 @@ namespace Expost.RuleReconstruction
         private readonly Dictionary<BoxColor, Image> sourceSlotImages = new();
         private readonly Dictionary<BoxColor, RulePreviewView> previewViews = new();
         private readonly Dictionary<BoxColor, RangeIconView> rangeIconViews = new();
+        private readonly Dictionary<BoxColor, Text> effectIconTexts = new();
         private readonly Dictionary<BoxColor, Image> rulePanelImages = new();
         private readonly Dictionary<BoxColor, Outline> rulePanelOutlines = new();
         private readonly Dictionary<DirectionType, RulePreviewView> directionBlockPreviews = new();
         private readonly Dictionary<DirectionType, Outline> directionBlockOutlines = new();
         private readonly Dictionary<RangeType, Outline> rangeBlockOutlines = new();
+        private readonly Dictionary<EffectType, Outline> effectBlockOutlines = new();
         private readonly List<BoardCellView> boardCells = new();
 
         private RuleReconstructionSession session;
@@ -251,11 +253,13 @@ namespace Expost.RuleReconstruction
             sourceSlotImages.Clear();
             previewViews.Clear();
             rangeIconViews.Clear();
+            effectIconTexts.Clear();
             rulePanelImages.Clear();
             rulePanelOutlines.Clear();
             directionBlockPreviews.Clear();
             directionBlockOutlines.Clear();
             rangeBlockOutlines.Clear();
+            effectBlockOutlines.Clear();
 
             foreach (Transform child in sidebar)
             {
@@ -333,7 +337,7 @@ namespace Expost.RuleReconstruction
 
             var effectButton = ui.CreateIconButton($"{color}Effect", panelRect, () => SelectRuleColor(color));
             RuleReconstructionUiFactory.Anchor(effectButton.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(140f, -18f), new Vector2(176f, 18f));
-            AddPlusIcon(effectButton.transform, new Vector2(10f, 2f));
+            effectIconTexts[color] = CreateEffectText($"{color}EffectText", effectButton.transform, EffectType.AddNumber, 17);
         }
 
         private void AddBlockTray(RectTransform parent)
@@ -370,7 +374,15 @@ namespace Expost.RuleReconstruction
             var effectRoot = ui.CreatePanel("EffectBlocks", parent, new Color(0.15f, 0.25f, 0.41f));
             RuleReconstructionUiFactory.Anchor(effectRoot, new Vector2(0.52f, 1f), new Vector2(1f, 1f), new Vector2(4f, -84f), new Vector2(0f, -46f));
             AddSectionAccent(effectRoot, new Color(1f, 0.86f, 0.20f));
-            AddEffectBlockButton(effectRoot, () => SelectRuleColor(selectedRuleColor));
+            var effectGrid = effectRoot.gameObject.AddComponent<GridLayoutGroup>();
+            effectGrid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            effectGrid.constraintCount = 2;
+            effectGrid.cellSize = new Vector2(38f, 30f);
+            effectGrid.spacing = new Vector2(7f, 0f);
+            effectGrid.padding = new RectOffset(10, 0, 5, 0);
+
+            AddEffectBlockButton(effectRoot, EffectType.AddNumber, () => ApplyEffectBlock(EffectType.AddNumber));
+            AddEffectBlockButton(effectRoot, EffectType.SubtractNumber, () => ApplyEffectBlock(EffectType.SubtractNumber));
         }
 
         private void AddSectionAccent(RectTransform parent, Color color)
@@ -445,12 +457,25 @@ namespace Expost.RuleReconstruction
             RuleReconstructionUiFactory.Anchor(icon.Dots[3], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-radius - 3f, -3f), new Vector2(-radius + 3f, 3f));
         }
 
-        private void AddEffectBlockButton(RectTransform parent, UnityEngine.Events.UnityAction onClick)
+        private void AddEffectBlockButton(RectTransform parent, EffectType effect, UnityEngine.Events.UnityAction onClick)
         {
-            var button = ui.CreateIconButton("BlockEffect", parent, onClick);
-            RuleReconstructionUiFactory.Anchor(button.GetComponent<RectTransform>(), new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(10f, -15f), new Vector2(48f, 15f));
+            var button = ui.CreateIconButton($"Block{effect}", parent, onClick);
+            effectBlockOutlines[effect] = AddSelectionOutline(button.gameObject);
+            CreateEffectText($"{effect}Text", button.transform, effect, 17);
+        }
 
-            AddPlusIcon(button.transform, new Vector2(10f, 2f));
+        private Text CreateEffectText(string name, Transform parent, EffectType effect, int fontSize)
+        {
+            var text = ui.CreateText(name, parent, GetEffectLabel(effect), fontSize, TextAnchor.MiddleCenter);
+            text.fontStyle = FontStyle.Bold;
+            text.color = affectedTextColor;
+            RuleReconstructionUiFactory.Stretch(text.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+            return text;
+        }
+
+        private static string GetEffectLabel(EffectType effect)
+        {
+            return effect == EffectType.SubtractNumber ? "-1" : "+1";
         }
 
         private void AddPlusIcon(Transform parent, Vector2 halfSize)
@@ -541,6 +566,7 @@ namespace Expost.RuleReconstruction
                 rulePanelImages[color].color = rulePanelColor;
                 rulePanelOutlines[color].enabled = color == selectedRuleColor;
                 UpdateRangeIcon(rangeIconViews[color], session.GetRange(color));
+                effectIconTexts[color].text = GetEffectLabel(session.GetEffect(color));
             }
 
             UpdateBlockSelection();
@@ -551,6 +577,7 @@ namespace Expost.RuleReconstruction
         {
             var selectedDirection = session.GetDirection(selectedRuleColor);
             var selectedRange = session.GetRange(selectedRuleColor);
+            var selectedEffect = session.GetEffect(selectedRuleColor);
 
             foreach (var pair in directionBlockOutlines)
             {
@@ -560,6 +587,11 @@ namespace Expost.RuleReconstruction
             foreach (var pair in rangeBlockOutlines)
             {
                 pair.Value.enabled = pair.Key == selectedRange;
+            }
+
+            foreach (var pair in effectBlockOutlines)
+            {
+                pair.Value.enabled = pair.Key == selectedEffect;
             }
         }
 
@@ -634,6 +666,12 @@ namespace Expost.RuleReconstruction
         private void ApplyRangeBlock(RangeType range)
         {
             session.SetRange(selectedRuleColor, range);
+            ResetDisplay();
+        }
+
+        private void ApplyEffectBlock(EffectType effect)
+        {
+            session.SetEffect(selectedRuleColor, effect);
             ResetDisplay();
         }
 
