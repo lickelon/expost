@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 143929d012a964a7a997e79dbdae0d20, type: 3}
+  m_Name: 01_Color_Basics
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.StageAsset
+  stageName: 01 Color Basics
+  packId: main
+  order: 1
+  difficulty: 1
+  designerNote: 
+  width: 5
+  height: 5
+  sources:
+  - X: 1
+    Y: 1
+    Color: 0
+  - X: 2
+    Y: 2
+    Color: 1
+  - X: 3
+    Y: 3
+    Color: 2
+  answerRules:
+  - Color: 0
+    Direction: 0
+    Range: 0
+  - Color: 1
+    Direction: 0
+    Range: 0
+  - Color: 2
+    Direction: 0
+    Range: 0
