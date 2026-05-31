@@ -9,7 +9,7 @@ namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("Rule Reconstruction/Rule Reconstruction Game")]
-    public sealed class RuleReconstructionPrototype : MonoBehaviour
+    public sealed class RuleReconstructionGame : MonoBehaviour
     {
         private static readonly BoxColor[] AllColors =
         {
@@ -459,39 +459,16 @@ namespace Expost.RuleReconstruction
 
         private void RenderBoard()
         {
-            if (displayBoard == null || boardCells.Count != displayBoard.Width * displayBoard.Height)
-            {
-                return;
-            }
-
-            foreach (var view in boardCells)
-            {
-                var cell = displayBoard.GetCell(view.Position.X, view.Position.Y);
-                var targetCell = CurrentStage.TargetBoard.GetCell(view.Position.X, view.Position.Y);
-                var isWrong = showMismatch && !Validator.IsCellCorrect(cell, targetCell);
-                var isAffected = !cell.HasSource && activeAffectedCells.Contains(view.Position);
-
-                view.Background.color = cell.HasSource ? GetSourceColor(cell.SourceColor) : cellColor;
-                view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
-                view.Label.fontSize = isWrong ? 14 : 25;
-                view.Label.color = isWrong ? wrongTextColor : isAffected ? affectedTextColor : Color.white;
-            }
-        }
-
-        private static string GetBoardCellLabel(CellState cell, CellState targetCell, bool isWrong)
-        {
-            if (cell.HasSource)
-            {
-                return string.Empty;
-            }
-
-            if (!isWrong)
-            {
-                return cell.Number.ToString();
-            }
-
-            var difference = targetCell.Number - cell.Number;
-            return difference > 0 ? $"+{difference}\nNEED" : $"-{-difference}\nOVER";
+            RuleReconstructionBoardRenderer.Render(
+                boardCells,
+                displayBoard,
+                CurrentStage,
+                showMismatch,
+                activeAffectedCells,
+                cellColor,
+                wrongTextColor,
+                affectedTextColor,
+                GetSourceColor);
         }
 
         private void MoveStage(int delta)
@@ -647,40 +624,8 @@ namespace Expost.RuleReconstruction
 
         private string GetMismatchSummaryText()
         {
-            var summary = GetMismatchSummary();
+            var summary = RuleReconstructionMismatchAnalyzer.GetSummary(session.ResultBoard, CurrentStage.TargetBoard);
             return $"WRONG {summary.Total} | NEED {summary.NeedMore} | OVER {summary.Excess}";
-        }
-
-        private MismatchSummary GetMismatchSummary()
-        {
-            var needMore = 0;
-            var excess = 0;
-            var resultBoard = session.ResultBoard;
-            var targetBoard = CurrentStage.TargetBoard;
-
-            for (var y = 0; y < targetBoard.Height; y++)
-            {
-                for (var x = 0; x < targetBoard.Width; x++)
-                {
-                    var targetCell = targetBoard.GetCell(x, y);
-                    if (targetCell.HasSource)
-                    {
-                        continue;
-                    }
-
-                    var difference = targetCell.Number - resultBoard.GetCell(x, y).Number;
-                    if (difference > 0)
-                    {
-                        needMore++;
-                    }
-                    else if (difference < 0)
-                    {
-                        excess++;
-                    }
-                }
-            }
-
-            return new MismatchSummary(needMore, excess);
         }
 
         private Color GetResultTextColor()

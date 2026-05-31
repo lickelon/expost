@@ -7,13 +7,13 @@ namespace Expost.RuleReconstruction
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Initialize()
         {
-            if (Object.FindAnyObjectByType<RuleReconstructionPrototype>() != null)
+            if (Object.FindAnyObjectByType<RuleReconstructionGame>() != null)
             {
                 return;
             }
 
             var gameObject = new GameObject("Rule Reconstruction Game");
-            gameObject.AddComponent<RuleReconstructionPrototype>();
+            gameObject.AddComponent<RuleReconstructionGame>();
             Object.DontDestroyOnLoad(gameObject);
         }
     }

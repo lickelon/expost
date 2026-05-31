@@ -220,7 +220,7 @@ Assets/
           StageAsset.cs
           StageRepository.cs
         Presentation/
-          RuleReconstructionPrototype.cs
+          RuleReconstructionGame.cs
 ```
 
 판단:
