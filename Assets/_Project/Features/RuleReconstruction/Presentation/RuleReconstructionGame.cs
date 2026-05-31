@@ -24,6 +24,9 @@ namespace Expost.RuleReconstruction
         private readonly Dictionary<BoxColor, RangeIconView> rangeIconViews = new();
         private readonly Dictionary<BoxColor, Image> rulePanelImages = new();
         private readonly Dictionary<BoxColor, Outline> rulePanelOutlines = new();
+        private readonly Dictionary<DirectionType, RulePreviewView> directionBlockPreviews = new();
+        private readonly Dictionary<DirectionType, Outline> directionBlockOutlines = new();
+        private readonly Dictionary<RangeType, Outline> rangeBlockOutlines = new();
         private readonly List<BoardCellView> boardCells = new();
 
         private RuleReconstructionSession session;
@@ -123,7 +126,23 @@ namespace Expost.RuleReconstruction
             statusText = view.StatusText;
             analysisText = view.AnalysisText;
             resultBannerText = view.ResultBannerText;
+            DisableStaticActionPanelRaycast();
             return true;
+        }
+
+        private void DisableStaticActionPanelRaycast()
+        {
+            var staticActions = canvas.transform.Find("Root/StaticActions");
+            if (staticActions == null)
+            {
+                return;
+            }
+
+            var image = staticActions.GetComponent<Image>();
+            if (image != null)
+            {
+                image.raycastTarget = false;
+            }
         }
 
         private void WireStaticButtons()
@@ -234,6 +253,9 @@ namespace Expost.RuleReconstruction
             rangeIconViews.Clear();
             rulePanelImages.Clear();
             rulePanelOutlines.Clear();
+            directionBlockPreviews.Clear();
+            directionBlockOutlines.Clear();
+            rangeBlockOutlines.Clear();
 
             foreach (Transform child in sidebar)
             {
@@ -361,29 +383,34 @@ namespace Expost.RuleReconstruction
         private void AddDirectionBlockButton(RectTransform parent, DirectionType direction, UnityEngine.Events.UnityAction onClick)
         {
             var button = ui.CreateIconButton($"Block{direction}", parent, onClick);
+            directionBlockOutlines[direction] = AddSelectionOutline(button.gameObject);
             var icon = CreateRulePreview($"{direction}Icon", button.transform);
+            directionBlockPreviews[direction] = icon;
             AnchorIconPreview(icon.Root);
             ConfigureSmallPreview(icon.Root);
 
             var affected = RuleReconstructionPreviewPattern.GetAffectedCells(direction);
             for (var index = 0; index < icon.Cells.Count; index++)
             {
-                if (index == 4)
-                {
-                    icon.Cells[index].color = new Color(0.88f, 0.22f, 0.18f);
-                }
-                else
-                {
-                    icon.Cells[index].color = affected.Contains(index) ? affectedTextColor : new Color(0.26f, 0.34f, 0.46f);
-                }
+                icon.Cells[index].color = affected.Contains(index) ? affectedTextColor : new Color(0.26f, 0.34f, 0.46f);
             }
         }
 
         private void AddRangeBlockButton(RectTransform parent, RangeType range, UnityEngine.Events.UnityAction onClick)
         {
             var button = ui.CreateIconButton($"Block{range}", parent, onClick);
+            rangeBlockOutlines[range] = AddSelectionOutline(button.gameObject);
             var icon = CreateRangeIcon($"{range}Icon", button.transform);
             UpdateRangeIcon(icon, range);
+        }
+
+        private Outline AddSelectionOutline(GameObject target)
+        {
+            var outline = target.AddComponent<Outline>();
+            outline.effectColor = selectedRuleOutlineColor;
+            outline.effectDistance = new Vector2(2f, -2f);
+            outline.enabled = false;
+            return outline;
         }
 
         private RangeIconView CreateRangeIcon(string name, Transform parent)
@@ -515,6 +542,34 @@ namespace Expost.RuleReconstruction
                 rulePanelOutlines[color].enabled = color == selectedRuleColor;
                 UpdateRangeIcon(rangeIconViews[color], session.GetRange(color));
             }
+
+            UpdateBlockSelection();
+            UpdateBlockPreviews();
+        }
+
+        private void UpdateBlockSelection()
+        {
+            var selectedDirection = session.GetDirection(selectedRuleColor);
+            var selectedRange = session.GetRange(selectedRuleColor);
+
+            foreach (var pair in directionBlockOutlines)
+            {
+                pair.Value.enabled = pair.Key == selectedDirection;
+            }
+
+            foreach (var pair in rangeBlockOutlines)
+            {
+                pair.Value.enabled = pair.Key == selectedRange;
+            }
+        }
+
+        private void UpdateBlockPreviews()
+        {
+            var selectedColor = GetSourceColor(selectedRuleColor);
+            foreach (var pair in directionBlockPreviews)
+            {
+                pair.Value.Cells[4].color = selectedColor;
+            }
         }
 
         private void UpdateRulePreviews()
@@ -567,6 +622,7 @@ namespace Expost.RuleReconstruction
         private void SelectRuleColor(BoxColor color)
         {
             selectedRuleColor = color;
+            UpdateRuleButtons();
         }
 
         private void ApplyDirectionBlock(DirectionType direction)

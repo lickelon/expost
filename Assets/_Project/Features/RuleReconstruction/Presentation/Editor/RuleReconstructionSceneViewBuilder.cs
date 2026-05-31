@@ -66,6 +66,7 @@ namespace Expost.RuleReconstruction.Editor
             bannerOutline.effectDistance = new Vector2(2f, -2f);
 
             var actionRoot = CreatePanel("StaticActions", root, Color.clear);
+            actionRoot.GetComponent<Image>().raycastTarget = false;
             Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(0.33f, 0f), new Vector2(14f, 12f), new Vector2(-24f, 188f));
 
             var testButton = CreateButton("TestButton", actionRoot, "Test", 16, font);
