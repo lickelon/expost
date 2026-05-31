@@ -86,6 +86,10 @@ namespace Expost.RuleReconstruction
             {
                 board.AddNumber(position.X, position.Y, 1);
             }
+            else if (rule.Effect == EffectType.SubtractNumber)
+            {
+                board.AddNumber(position.X, position.Y, -1);
+            }
         }
 
         private static IReadOnlyList<GridPosition> GetDirections(DirectionType direction)

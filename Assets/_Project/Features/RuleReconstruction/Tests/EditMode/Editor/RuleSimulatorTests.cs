@@ -38,6 +38,20 @@ namespace Expost.RuleReconstruction.Tests
             Assert.That(positions.Contains(new GridPosition(1, 2)), Is.True);
         }
 
+        [Test]
+        public void Simulate_AppliesSubtractEffect()
+        {
+            var stage = CreateStage(new SourceBoxData(2, 2, BoxColor.Red));
+            var rules = CreateRules(new ColorRuleData(BoxColor.Red, DirectionType.Cross, RangeType.One, EffectType.SubtractNumber));
+
+            var result = RuleSimulator.Simulate(stage, rules);
+
+            Assert.That(result.GetCell(2, 3).Number, Is.EqualTo(-1));
+            Assert.That(result.GetCell(3, 2).Number, Is.EqualTo(-1));
+            Assert.That(result.GetCell(2, 1).Number, Is.EqualTo(-1));
+            Assert.That(result.GetCell(1, 2).Number, Is.EqualTo(-1));
+        }
+
         private static StageData CreateStage(params SourceBoxData[] sources)
         {
             return new StageData
@@ -56,7 +70,7 @@ namespace Expost.RuleReconstruction.Tests
 
             foreach (var rule in rules)
             {
-                ruleSet.Set(rule.Color, new Rule(rule.Direction, rule.Range, EffectType.AddNumber));
+                ruleSet.Set(rule.Color, new Rule(rule.Direction, rule.Range, rule.Effect));
             }
 
             return ruleSet;

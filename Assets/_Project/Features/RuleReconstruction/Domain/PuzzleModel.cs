@@ -28,7 +28,8 @@ namespace Expost.RuleReconstruction
 
     public enum EffectType
     {
-        AddNumber
+        AddNumber,
+        SubtractNumber
     }
 
     [Serializable]
@@ -84,6 +85,7 @@ namespace Expost.RuleReconstruction
         public BoxColor Color;
         public DirectionType Direction;
         public RangeType Range;
+        public EffectType Effect;
 
         public ColorRuleData()
         {
@@ -94,6 +96,15 @@ namespace Expost.RuleReconstruction
             Color = color;
             Direction = direction;
             Range = range;
+            Effect = EffectType.AddNumber;
+        }
+
+        public ColorRuleData(BoxColor color, DirectionType direction, RangeType range, EffectType effect)
+        {
+            Color = color;
+            Direction = direction;
+            Range = range;
+            Effect = effect;
         }
     }
 

@@ -33,6 +33,12 @@ namespace Expost.RuleReconstruction
             RangeType.Two
         };
 
+        private static readonly EffectType[] EffectCandidates =
+        {
+            EffectType.AddNumber,
+            EffectType.SubtractNumber
+        };
+
         public static StageAnalysisResult Analyze(StageData stage)
         {
             var colors = GetStageColors(stage);
@@ -81,8 +87,11 @@ namespace Expost.RuleReconstruction
             {
                 foreach (var range in RangeCandidates)
                 {
-                    rules.Set(color, new Rule(direction, range, EffectType.AddNumber));
-                    Search(stage, colors, colorIndex + 1, rules, ref testedCount, ref matchingCount);
+                    foreach (var effect in EffectCandidates)
+                    {
+                        rules.Set(color, new Rule(direction, range, effect));
+                        Search(stage, colors, colorIndex + 1, rules, ref testedCount, ref matchingCount);
+                    }
                 }
             }
         }

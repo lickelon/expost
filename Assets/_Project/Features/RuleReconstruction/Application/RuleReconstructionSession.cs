@@ -19,9 +19,16 @@ namespace Expost.RuleReconstruction
             RangeType.Two
         };
 
+        private static readonly EffectType[] EffectOptions =
+        {
+            EffectType.AddNumber,
+            EffectType.SubtractNumber
+        };
+
         private readonly List<StageData> stages;
         private readonly Dictionary<BoxColor, DirectionType> selectedDirections = new();
         private readonly Dictionary<BoxColor, RangeType> selectedRanges = new();
+        private readonly Dictionary<BoxColor, EffectType> selectedEffects = new();
         private int stageIndex;
 
         public RuleReconstructionSession(List<StageData> stages, IReadOnlyList<BoxColor> colors)
@@ -32,6 +39,7 @@ namespace Expost.RuleReconstruction
             {
                 selectedDirections[color] = DirectionType.Cross;
                 selectedRanges[color] = RangeType.One;
+                selectedEffects[color] = EffectType.AddNumber;
             }
 
             ResetSimulation();
@@ -53,6 +61,11 @@ namespace Expost.RuleReconstruction
         public RangeType GetRange(BoxColor color)
         {
             return selectedRanges[color];
+        }
+
+        public EffectType GetEffect(BoxColor color)
+        {
+            return selectedEffects[color];
         }
 
         public void MoveStage(int delta)
@@ -84,6 +97,19 @@ namespace Expost.RuleReconstruction
         public void SetRange(BoxColor color, RangeType range)
         {
             selectedRanges[color] = range;
+            ResetSimulation();
+        }
+
+        public void CycleEffect(BoxColor color)
+        {
+            var nextIndex = (IndexOf(EffectOptions, selectedEffects[color]) + 1) % EffectOptions.Length;
+            selectedEffects[color] = EffectOptions[nextIndex];
+            ResetSimulation();
+        }
+
+        public void SetEffect(BoxColor color, EffectType effect)
+        {
+            selectedEffects[color] = effect;
             ResetSimulation();
         }
 
@@ -153,7 +179,7 @@ namespace Expost.RuleReconstruction
 
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
-                ruleSet.Set(color, new Rule(selectedDirections[color], selectedRanges[color], EffectType.AddNumber));
+                ruleSet.Set(color, new Rule(selectedDirections[color], selectedRanges[color], selectedEffects[color]));
             }
 
             return ruleSet;

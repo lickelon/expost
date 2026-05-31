@@ -109,6 +109,11 @@ namespace Expost.RuleReconstruction
             return new ColorRuleAnswer(color, new Rule(direction, range, EffectType.AddNumber));
         }
 
+        private static ColorRuleAnswer Answer(BoxColor color, DirectionType direction, RangeType range, EffectType effect)
+        {
+            return new ColorRuleAnswer(color, new Rule(direction, range, effect));
+        }
+
         private readonly struct ColorRuleAnswer
         {
             public readonly BoxColor Color;
