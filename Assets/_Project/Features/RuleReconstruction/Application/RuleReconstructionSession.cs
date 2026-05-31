@@ -49,7 +49,6 @@ namespace Expost.RuleReconstruction
         public int ActiveSourceIndex { get; private set; } = -1;
         public BoardState ResultBoard { get; private set; }
         public ValidationResult ValidationResult { get; private set; }
-        public StageAnalysisResult StageAnalysis { get; private set; }
         public StageData CurrentStage => stages[stageIndex];
         public bool IsComplete => AppliedSourceCount >= CurrentStage.Sources.Count;
 
@@ -118,7 +117,6 @@ namespace Expost.RuleReconstruction
             AppliedSourceCount = 0;
             ActiveSourceIndex = -1;
             RefreshResult();
-            StageAnalysis = StageRuleAnalyzer.Analyze(CurrentStage);
         }
 
         public void SetActiveSource(int sourceIndex)
