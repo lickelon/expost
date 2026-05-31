@@ -30,11 +30,14 @@ namespace Expost.RuleReconstruction
         private BoardState displayBoard;
         private HashSet<GridPosition> activeAffectedCells = new();
         private Coroutine runRoutine;
+        [SerializeField] private RuleReconstructionView view;
+        [SerializeField] private bool buildRuntimeLayoutWhenMissing = true;
         private BoxColor selectedRuleColor;
         private bool isRunning;
         private bool showResult;
         private bool showMismatch;
         private bool showResultBanner;
+        private bool usingSceneView;
         private Canvas canvas;
         private RectTransform sidebar;
         private RectTransform boardPanel;
@@ -44,6 +47,10 @@ namespace Expost.RuleReconstruction
         private Text statusText;
         private Text analysisText;
         private Text resultBannerText;
+        private Button prevButton;
+        private Button nextButton;
+        private Button testButton;
+        private Button targetButton;
         private Font uiFont;
         private RuleReconstructionUiFactory ui;
 
@@ -74,9 +81,66 @@ namespace Expost.RuleReconstruction
             uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             ui = new RuleReconstructionUiFactory(uiFont, buttonColor);
 
-            CreateCanvas();
-            BuildLayout();
+            usingSceneView = TryBindSceneView();
+            if (!usingSceneView)
+            {
+                if (!buildRuntimeLayoutWhenMissing)
+                {
+                    Debug.LogError("RuleReconstructionGame requires a bound RuleReconstructionView.", this);
+                    return;
+                }
+
+                CreateCanvas();
+                BuildLayout();
+            }
+            else
+            {
+                BuildSidebar();
+                BuildBoardCells();
+            }
+
+            WireStaticButtons();
             ResetDisplay();
+        }
+
+        private bool TryBindSceneView()
+        {
+            if (view == null)
+            {
+                view = GetComponentInChildren<RuleReconstructionView>(true);
+            }
+
+            if (view == null || !view.HasRequiredReferences())
+            {
+                return false;
+            }
+
+            canvas = view.Canvas;
+            sidebar = view.DynamicSidebarRoot;
+            boardPanel = view.BoardPanel;
+            titleText = view.TitleText;
+            boardTitleText = view.BoardTitleText;
+            statusText = view.StatusText;
+            analysisText = view.AnalysisText;
+            resultBannerText = view.ResultBannerText;
+            return true;
+        }
+
+        private void WireStaticButtons()
+        {
+            if (view == null || !view.HasRequiredReferences())
+            {
+                return;
+            }
+
+            view.PrevButton.onClick.RemoveAllListeners();
+            view.PrevButton.onClick.AddListener(() => MoveStage(-1));
+            view.NextButton.onClick.RemoveAllListeners();
+            view.NextButton.onClick.AddListener(() => MoveStage(1));
+            view.TestButton.onClick.RemoveAllListeners();
+            view.TestButton.onClick.AddListener(StartRun);
+            view.TargetButton.onClick.RemoveAllListeners();
+            view.TargetButton.onClick.AddListener(ResetDisplay);
         }
 
         private void CreateCanvas()
@@ -121,10 +185,10 @@ namespace Expost.RuleReconstruction
             titleText = ui.CreateText("Title", root, string.Empty, 22, TextAnchor.MiddleLeft);
             RuleReconstructionUiFactory.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(0f, 0f));
 
-            var prevButton = ui.CreateButton("PrevButton", root, "Prev", 16, () => MoveStage(-1));
+            prevButton = ui.CreateButton("PrevButton", root, "Prev", 16, () => MoveStage(-1));
             RuleReconstructionUiFactory.Anchor(prevButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-160f, -34f), new Vector2(-84f, 0f));
 
-            var nextButton = ui.CreateButton("NextButton", root, "Next", 16, () => MoveStage(1));
+            nextButton = ui.CreateButton("NextButton", root, "Next", 16, () => MoveStage(1));
             RuleReconstructionUiFactory.Anchor(nextButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-76f, -34f), new Vector2(0f, 0f));
 
             sidebar = ui.CreatePanel("Sidebar", root, panelColor);
@@ -146,6 +210,21 @@ namespace Expost.RuleReconstruction
 
             BuildSidebar();
             BuildBoardCells();
+
+            view = canvas.gameObject.AddComponent<RuleReconstructionView>();
+            view.Bind(
+                canvas,
+                sidebar,
+                boardPanel,
+                titleText,
+                boardTitleText,
+                statusText,
+                analysisText,
+                resultBannerText,
+                prevButton,
+                nextButton,
+                testButton,
+                targetButton);
         }
 
         private void BuildSidebar()
@@ -177,20 +256,25 @@ namespace Expost.RuleReconstruction
                 y -= 58f;
             }
 
-            analysisText = ui.CreateText("StageAnalysis", content, string.Empty, 12, TextAnchor.MiddleLeft);
-            RuleReconstructionUiFactory.Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y), new Vector2(0f, y));
-            analysisText.gameObject.SetActive(false);
-
             var actionRoot = ui.CreatePanel("Actions", sidebar, Color.clear);
             RuleReconstructionUiFactory.Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(14f, 12f), new Vector2(-14f, 188f));
 
             AddBlockTray(actionRoot);
 
-            var runButton = ui.CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
-            RuleReconstructionUiFactory.Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -132f), new Vector2(0f, -108f));
+            if (usingSceneView)
+            {
+                return;
+            }
 
-            var resetButton = ui.CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
-            RuleReconstructionUiFactory.Anchor(resetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -160f), new Vector2(0f, -136f));
+            analysisText = ui.CreateText("StageAnalysis", content, string.Empty, 12, TextAnchor.MiddleLeft);
+            RuleReconstructionUiFactory.Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y), new Vector2(0f, y));
+            analysisText.gameObject.SetActive(false);
+
+            testButton = ui.CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
+            RuleReconstructionUiFactory.Anchor(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -132f), new Vector2(0f, -108f));
+
+            targetButton = ui.CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
+            RuleReconstructionUiFactory.Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -160f), new Vector2(0f, -136f));
 
             statusText = ui.CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
             RuleReconstructionUiFactory.Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));
