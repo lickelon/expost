@@ -48,6 +48,29 @@ namespace Expost.RuleReconstruction
                 && targetButton != null;
         }
 
+        public void RefreshStaticButtonVisuals()
+        {
+            if (prevButton != null)
+            {
+                RuleReconstructionIconFactory.ApplyToButton(prevButton, ButtonIconKind.Previous, 18f);
+            }
+
+            if (nextButton != null)
+            {
+                RuleReconstructionIconFactory.ApplyToButton(nextButton, ButtonIconKind.Next, 18f);
+            }
+
+            if (testButton != null)
+            {
+                RuleReconstructionIconFactory.ApplyToButton(testButton, ButtonIconKind.Run, 22f);
+            }
+
+            if (targetButton != null)
+            {
+                RuleReconstructionIconFactory.ApplyToButton(targetButton, ButtonIconKind.Target, 22f);
+            }
+        }
+
         public void Bind(
             Canvas canvas,
             RectTransform dynamicSidebarRoot,

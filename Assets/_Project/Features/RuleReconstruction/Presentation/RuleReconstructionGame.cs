@@ -110,23 +110,7 @@ namespace Expost.RuleReconstruction
             nextButton = view.NextButton;
             testButton = view.TestButton;
             targetButton = view.TargetButton;
-            DisableStaticActionPanelRaycast();
             return true;
-        }
-
-        private void DisableStaticActionPanelRaycast()
-        {
-            var staticActions = canvas.transform.Find("Root/StaticActions");
-            if (staticActions == null)
-            {
-                return;
-            }
-
-            var image = staticActions.GetComponent<Image>();
-            if (image != null)
-            {
-                image.raycastTarget = false;
-            }
         }
 
         private void WireStaticButtons()
@@ -144,11 +128,7 @@ namespace Expost.RuleReconstruction
             view.TestButton.onClick.AddListener(StartRun);
             view.TargetButton.onClick.RemoveAllListeners();
             view.TargetButton.onClick.AddListener(ResetDisplay);
-            RuleReconstructionIconFactory.ApplyToButton(view.PrevButton, ButtonIconKind.Previous, 18f);
-            RuleReconstructionIconFactory.ApplyToButton(view.NextButton, ButtonIconKind.Next, 18f);
-            RuleReconstructionIconFactory.ApplyToButton(view.TestButton, ButtonIconKind.Run, 22f);
-            RuleReconstructionIconFactory.ApplyToButton(view.TargetButton, ButtonIconKind.Target, 22f);
-            RuleReconstructionLayout.AnchorActionButtons(view.TestButton, view.TargetButton);
+            view.RefreshStaticButtonVisuals();
         }
 
         private void BuildSidebar()

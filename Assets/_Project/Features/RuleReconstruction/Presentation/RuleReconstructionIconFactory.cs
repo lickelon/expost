@@ -34,6 +34,7 @@ namespace Expost.RuleReconstruction
             icon.sprite = Get(kind);
             icon.color = Color.white;
             icon.preserveAspect = true;
+            iconRect.SetAsLastSibling();
             RuleReconstructionUiFactory.Anchor(
                 iconRect,
                 new Vector2(0.5f, 0.5f),

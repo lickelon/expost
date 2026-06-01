@@ -257,7 +257,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 16
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -268,7 +268,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Target
+  m_Text: '#'
 --- !u!222 &146331945
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -628,7 +628,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionGame
   view: {fileID: 1268496022}
-  buildRuntimeLayoutWhenMissing: 0
 --- !u!4 &403236432
 Transform:
   m_ObjectHideFlags: 0
@@ -1330,7 +1329,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 16
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -1341,7 +1340,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Next
+  m_Text: '>'
 --- !u!222 &1224354932
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1657,7 +1656,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 16
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -1668,7 +1667,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Test
+  m_Text: '>'
 --- !u!222 &1378468441
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1711,10 +1710,10 @@ RectTransform:
   - {fileID: 146331943}
   m_Father: {fileID: 606736926}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -148}
-  m_SizeDelta: {x: 0, y: 24}
+  m_AnchoredPosition: {x: 2, y: -134}
+  m_SizeDelta: {x: -4, y: 52}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1474127083
 MonoBehaviour:
@@ -1991,9 +1990,9 @@ RectTransform:
   m_Father: {fileID: 606736926}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -120}
-  m_SizeDelta: {x: 0, y: 24}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: -2, y: -134}
+  m_SizeDelta: {x: -4, y: 52}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1779799954
 MonoBehaviour:
@@ -2136,7 +2135,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 16
+    m_FontSize: 24
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 10
@@ -2147,7 +2146,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Prev
+  m_Text: <
 --- !u!222 &1935603260
 CanvasRenderer:
   m_ObjectHideFlags: 0
