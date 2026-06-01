@@ -29,6 +29,7 @@ namespace Expost.RuleReconstruction
         private readonly Dictionary<BoxColor, DirectionType> selectedDirections = new();
         private readonly Dictionary<BoxColor, RangeType> selectedRanges = new();
         private readonly Dictionary<BoxColor, EffectType> selectedEffects = new();
+        private readonly HashSet<int> clearedStageIndices = new();
         private int stageIndex;
 
         public RuleReconstructionSession(List<StageData> stages, IReadOnlyList<BoxColor> colors)
@@ -49,8 +50,13 @@ namespace Expost.RuleReconstruction
         public int ActiveSourceIndex { get; private set; } = -1;
         public BoardState ResultBoard { get; private set; }
         public ValidationResult ValidationResult { get; private set; }
+        public int StageIndex => stageIndex;
+        public int StageCount => stages.Count;
         public StageData CurrentStage => stages[stageIndex];
         public bool IsComplete => AppliedSourceCount >= CurrentStage.Sources.Count;
+        public bool IsFirstStage => stageIndex == 0;
+        public bool IsLastStage => stageIndex >= stages.Count - 1;
+        public bool IsCurrentStageCleared => clearedStageIndices.Contains(stageIndex);
 
         public DirectionType GetDirection(BoxColor color)
         {
@@ -69,8 +75,13 @@ namespace Expost.RuleReconstruction
 
         public void MoveStage(int delta)
         {
-            stageIndex = (stageIndex + delta + stages.Count) % stages.Count;
+            stageIndex = Clamp(stageIndex + delta, 0, stages.Count - 1);
             ResetSimulation();
+        }
+
+        public void MarkCurrentStageCleared()
+        {
+            clearedStageIndices.Add(stageIndex);
         }
 
         public void CycleDirection(BoxColor color)
@@ -194,6 +205,21 @@ namespace Expost.RuleReconstruction
             }
 
             return 0;
+        }
+
+        private static int Clamp(int value, int min, int max)
+        {
+            if (value < min)
+            {
+                return min;
+            }
+
+            if (value > max)
+            {
+                return max;
+            }
+
+            return value;
         }
     }
 }

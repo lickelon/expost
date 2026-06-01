@@ -45,7 +45,7 @@ namespace Expost.RuleReconstruction.Tests
         }
 
         [Test]
-        public void MoveStage_WrapsAndResetsSimulation()
+        public void MoveStage_ClampsAndResetsSimulation()
         {
             var first = CreateSingleSourceStage("01 First");
             var second = CreateSingleSourceStage("02 Second");
@@ -59,7 +59,33 @@ namespace Expost.RuleReconstruction.Tests
 
             session.MoveStage(1);
 
+            Assert.That(session.CurrentStage.Name, Is.EqualTo("02 Second"));
+
+            session.MoveStage(-1);
+
             Assert.That(session.CurrentStage.Name, Is.EqualTo("01 First"));
+
+            session.MoveStage(-1);
+
+            Assert.That(session.CurrentStage.Name, Is.EqualTo("01 First"));
+        }
+
+        [Test]
+        public void MarkCurrentStageCleared_StoresClearStatePerStage()
+        {
+            var first = CreateSingleSourceStage("01 First");
+            var second = CreateSingleSourceStage("02 Second");
+            var session = new RuleReconstructionSession(new List<StageData> { first, second }, TestColors);
+
+            Assert.That(session.IsCurrentStageCleared, Is.False);
+
+            session.MarkCurrentStageCleared();
+
+            Assert.That(session.IsCurrentStageCleared, Is.True);
+
+            session.MoveStage(1);
+
+            Assert.That(session.IsCurrentStageCleared, Is.False);
         }
 
         private static StageData CreateSingleSourceStage(string name)
