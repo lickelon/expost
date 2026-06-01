@@ -69,11 +69,11 @@ namespace Expost.RuleReconstruction.Editor
             actionRoot.GetComponent<Image>().raycastTarget = false;
             Anchor(actionRoot, new Vector2(0f, 0f), new Vector2(0.33f, 0f), new Vector2(14f, 12f), new Vector2(-24f, 188f));
 
-            var testButton = CreateButton("TestButton", actionRoot, "Test", 16, font);
-            Anchor(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -132f), new Vector2(0f, -108f));
+            var testButton = CreateButton("TestButton", actionRoot, string.Empty, 16, font);
+            Anchor(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(-4f, -108f));
 
-            var targetButton = CreateButton("TargetButton", actionRoot, "Target", 16, font);
-            Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -160f), new Vector2(0f, -136f));
+            var targetButton = CreateButton("TargetButton", actionRoot, string.Empty, 16, font);
+            Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(1f, 1f), new Vector2(4f, -160f), new Vector2(0f, -108f));
 
             var statusText = CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft, font);
             Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));

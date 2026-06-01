@@ -131,6 +131,10 @@ namespace Expost.RuleReconstruction
             statusText = view.StatusText;
             analysisText = view.AnalysisText;
             resultBannerText = view.ResultBannerText;
+            prevButton = view.PrevButton;
+            nextButton = view.NextButton;
+            testButton = view.TestButton;
+            targetButton = view.TargetButton;
             DisableStaticActionPanelRaycast();
             return true;
         }
@@ -165,6 +169,11 @@ namespace Expost.RuleReconstruction
             view.TestButton.onClick.AddListener(StartRun);
             view.TargetButton.onClick.RemoveAllListeners();
             view.TargetButton.onClick.AddListener(ResetDisplay);
+            SetButtonIcon(view.PrevButton, ButtonIconKind.Previous, 18f);
+            SetButtonIcon(view.NextButton, ButtonIconKind.Next, 18f);
+            SetButtonIcon(view.TestButton, ButtonIconKind.Run, 22f);
+            SetButtonIcon(view.TargetButton, ButtonIconKind.Target, 22f);
+            LayoutActionButtons(view.TestButton, view.TargetButton);
         }
 
         private void CreateCanvas()
@@ -209,11 +218,13 @@ namespace Expost.RuleReconstruction
             titleText = ui.CreateText("Title", root, string.Empty, 22, TextAnchor.MiddleLeft);
             RuleReconstructionUiFactory.Anchor(titleText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -34f), new Vector2(0f, 0f));
 
-            prevButton = ui.CreateButton("PrevButton", root, "Prev", 16, () => MoveStage(-1));
+            prevButton = ui.CreateButton("PrevButton", root, string.Empty, 16, () => MoveStage(-1));
             RuleReconstructionUiFactory.Anchor(prevButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-160f, -34f), new Vector2(-84f, 0f));
+            SetButtonIcon(prevButton, ButtonIconKind.Previous, 18f);
 
-            nextButton = ui.CreateButton("NextButton", root, "Next", 16, () => MoveStage(1));
+            nextButton = ui.CreateButton("NextButton", root, string.Empty, 16, () => MoveStage(1));
             RuleReconstructionUiFactory.Anchor(nextButton.GetComponent<RectTransform>(), new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-76f, -34f), new Vector2(0f, 0f));
+            SetButtonIcon(nextButton, ButtonIconKind.Next, 18f);
 
             sidebar = ui.CreatePanel("Sidebar", root, panelColor);
             RuleReconstructionUiFactory.Anchor(sidebar, new Vector2(0f, 0f), new Vector2(0.33f, 1f), new Vector2(0f, 0f), new Vector2(-10f, -46f));
@@ -299,14 +310,22 @@ namespace Expost.RuleReconstruction
             RuleReconstructionUiFactory.Anchor(analysisText.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, y), new Vector2(0f, y));
             analysisText.gameObject.SetActive(false);
 
-            testButton = ui.CreateButton("TestButton", actionRoot, "Test", 16, StartRun);
-            RuleReconstructionUiFactory.Anchor(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -132f), new Vector2(0f, -108f));
+            testButton = ui.CreateButton("TestButton", actionRoot, string.Empty, 16, StartRun);
+            RuleReconstructionUiFactory.Anchor(testButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(-4f, -108f));
+            SetButtonIcon(testButton, ButtonIconKind.Run, 22f);
 
-            targetButton = ui.CreateButton("TargetButton", actionRoot, "Target", 16, ResetDisplay);
-            RuleReconstructionUiFactory.Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -160f), new Vector2(0f, -136f));
+            targetButton = ui.CreateButton("TargetButton", actionRoot, string.Empty, 16, ResetDisplay);
+            RuleReconstructionUiFactory.Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(1f, 1f), new Vector2(4f, -160f), new Vector2(0f, -108f));
+            SetButtonIcon(targetButton, ButtonIconKind.Target, 22f);
 
             statusText = ui.CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
             RuleReconstructionUiFactory.Anchor(statusText.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));
+        }
+
+        private static void LayoutActionButtons(Button runButton, Button targetButton)
+        {
+            RuleReconstructionUiFactory.Anchor(runButton.GetComponent<RectTransform>(), new Vector2(0f, 1f), new Vector2(0.5f, 1f), new Vector2(0f, -160f), new Vector2(-4f, -108f));
+            RuleReconstructionUiFactory.Anchor(targetButton.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(1f, 1f), new Vector2(4f, -160f), new Vector2(0f, -108f));
         }
 
         private void AddRuleControls(RectTransform parent, BoxColor color, float top)
@@ -556,15 +575,195 @@ namespace Expost.RuleReconstruction
 
         private void UpdateTexts()
         {
-            titleText.text = $"Rule Reconstruction / {CurrentStage.Name}";
-            boardTitleText.text = GetMainBoardTitle();
-            statusText.text = GetStatusText();
-            statusText.color = GetResultTextColor();
+            titleText.text = $"{session.StageIndex + 1:00}/{session.StageCount:00} {GetStageTitleName()}";
+            boardTitleText.text = string.Empty;
+            statusText.text = string.Empty;
             resultBannerText.text = GetResultBannerText();
             resultBannerText.color = GetResultTextColor();
             resultBannerText.enabled = !string.IsNullOrEmpty(resultBannerText.text);
 
             analysisText.text = string.Empty;
+            UpdateNavigationButtons();
+        }
+
+        private void UpdateNavigationButtons()
+        {
+            if (prevButton != null)
+            {
+                SetButtonIcon(prevButton, ButtonIconKind.Previous, 18f);
+                SetNavigationButtonState(prevButton, !isRunning && !session.IsFirstStage);
+            }
+
+            if (nextButton != null)
+            {
+                var nextAvailable = !isRunning && session.IsCurrentStageCleared && !session.IsLastStage;
+                SetButtonIcon(nextButton, ButtonIconKind.Next, 18f);
+                SetNavigationButtonState(nextButton, nextAvailable);
+            }
+        }
+
+        private void SetNavigationButtonState(Button button, bool interactable)
+        {
+            button.interactable = interactable;
+
+            if (button.targetGraphic != null)
+            {
+                button.targetGraphic.color = interactable ? buttonColor : new Color(0.16f, 0.24f, 0.36f);
+            }
+
+            var label = button.GetComponentInChildren<Text>();
+            if (label != null)
+            {
+                label.color = interactable ? Color.white : new Color(1f, 1f, 1f, 0.42f);
+            }
+
+            var icon = button.transform.Find("Icon")?.GetComponent<Image>();
+            if (icon != null)
+            {
+                icon.color = interactable ? Color.white : new Color(1f, 1f, 1f, 0.42f);
+            }
+        }
+
+        private void SetButtonIcon(Button button, ButtonIconKind kind, float size)
+        {
+            var text = button.GetComponentInChildren<Text>();
+            if (text != null)
+            {
+                text.text = string.Empty;
+            }
+
+            var icon = button.transform.Find("Icon")?.GetComponent<Image>();
+            RectTransform iconRect;
+            if (icon == null)
+            {
+                var iconObject = new GameObject("Icon");
+                iconObject.transform.SetParent(button.transform, false);
+                iconRect = iconObject.AddComponent<RectTransform>();
+                icon = iconObject.AddComponent<Image>();
+                icon.raycastTarget = false;
+            }
+            else
+            {
+                iconRect = icon.GetComponent<RectTransform>();
+            }
+
+            icon.sprite = CreateIconSprite(kind);
+            icon.color = Color.white;
+            icon.preserveAspect = true;
+            RuleReconstructionUiFactory.Anchor(
+                iconRect,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(-size * 0.5f, -size * 0.5f),
+                new Vector2(size * 0.5f, size * 0.5f));
+        }
+
+        private Sprite CreateIconSprite(ButtonIconKind kind)
+        {
+            var texture = new Texture2D(32, 32, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Point,
+                hideFlags = HideFlags.HideAndDontSave
+            };
+
+            var clear = new Color(1f, 1f, 1f, 0f);
+            var pixels = texture.GetPixels();
+            for (var index = 0; index < pixels.Length; index++)
+            {
+                pixels[index] = clear;
+            }
+            texture.SetPixels(pixels);
+
+            switch (kind)
+            {
+                case ButtonIconKind.Previous:
+                    FillTriangle(texture, new Vector2Int(23, 7), new Vector2Int(8, 16), new Vector2Int(23, 25));
+                    break;
+                case ButtonIconKind.Next:
+                case ButtonIconKind.Run:
+                    FillTriangle(texture, new Vector2Int(9, 7), new Vector2Int(24, 16), new Vector2Int(9, 25));
+                    break;
+                case ButtonIconKind.Target:
+                    FillTarget(texture);
+                    break;
+                case ButtonIconKind.Check:
+                    FillCheck(texture);
+                    break;
+                case ButtonIconKind.Cross:
+                    FillCross(texture);
+                    break;
+            }
+
+            texture.Apply();
+            return Sprite.Create(texture, new Rect(0f, 0f, 32f, 32f), new Vector2(0.5f, 0.5f), 32f);
+        }
+
+        private static void FillTarget(Texture2D texture)
+        {
+            for (var y = 7; y <= 24; y += 8)
+            {
+                for (var x = 7; x <= 24; x += 8)
+                {
+                    FillRect(texture, x, y, 5, 5);
+                }
+            }
+        }
+
+        private static void FillCheck(Texture2D texture)
+        {
+            FillRect(texture, 7, 14, 5, 5);
+            FillRect(texture, 11, 10, 5, 5);
+            FillRect(texture, 15, 6, 5, 5);
+            FillRect(texture, 19, 18, 5, 5);
+            FillRect(texture, 23, 22, 5, 5);
+        }
+
+        private static void FillCross(Texture2D texture)
+        {
+            for (var offset = 0; offset < 16; offset += 4)
+            {
+                FillRect(texture, 8 + offset, 8 + offset, 5, 5);
+                FillRect(texture, 20 - offset, 8 + offset, 5, 5);
+            }
+        }
+
+        private static void FillTriangle(Texture2D texture, Vector2Int a, Vector2Int b, Vector2Int c)
+        {
+            for (var y = 0; y < texture.height; y++)
+            {
+                for (var x = 0; x < texture.width; x++)
+                {
+                    var point = new Vector2(x + 0.5f, y + 0.5f);
+                    if (IsInsideTriangle(point, a, b, c))
+                    {
+                        texture.SetPixel(x, y, Color.white);
+                    }
+                }
+            }
+        }
+
+        private static bool IsInsideTriangle(Vector2 point, Vector2 a, Vector2 b, Vector2 c)
+        {
+            var d1 = Sign(point, a, b);
+            var d2 = Sign(point, b, c);
+            var d3 = Sign(point, c, a);
+            return !(d1 < 0f || d2 < 0f || d3 < 0f) || !(d1 > 0f || d2 > 0f || d3 > 0f);
+        }
+
+        private static float Sign(Vector2 p1, Vector2 p2, Vector2 p3)
+        {
+            return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+        }
+
+        private static void FillRect(Texture2D texture, int x, int y, int width, int height)
+        {
+            for (var yy = y; yy < y + height; yy++)
+            {
+                for (var xx = x; xx < x + width; xx++)
+                {
+                    texture.SetPixel(xx, yy, Color.white);
+                }
+            }
         }
 
         private void UpdateRuleButtons()
@@ -652,6 +851,11 @@ namespace Expost.RuleReconstruction
 
         private void MoveStage(int delta)
         {
+            if (isRunning || delta > 0 && (!session.IsCurrentStageCleared || session.IsLastStage) || delta < 0 && session.IsFirstStage)
+            {
+                return;
+            }
+
             session.MoveStage(delta);
             selectedRuleColor = StageRuleAnalyzer.GetStageColors(CurrentStage)[0];
             ResetDisplay();
@@ -736,6 +940,7 @@ namespace Expost.RuleReconstruction
             }
             else
             {
+                session.MarkCurrentStageCleared();
                 showResultBanner = true;
                 yield return new WaitForSeconds(1.1f);
                 showResultBanner = false;
@@ -758,34 +963,12 @@ namespace Expost.RuleReconstruction
             isRunning = false;
         }
 
-        private string GetMainBoardTitle()
+        private string GetStageTitleName()
         {
-            if (showMismatch)
-            {
-                return $"Wrong {session.ValidationResult.WrongCellCount}";
-            }
-
-            if (showResult)
-            {
-                return session.ValidationResult.IsClear && IsComplete ? "Clear" : "Test Result";
-            }
-
-            return "Target";
-        }
-
-        private string GetStatusText()
-        {
-            if (isRunning)
-            {
-                return GetRunningStatusText();
-            }
-
-            if (!showResult)
-            {
-                return "TEST READY";
-            }
-
-            return session.ValidationResult.IsClear ? "CLEAR" : GetMismatchSummaryText();
+            var name = CurrentStage.Name;
+            return name.Length > 3 && char.IsDigit(name[0]) && char.IsDigit(name[1]) && name[2] == ' '
+                ? name.Substring(3)
+                : name;
         }
 
         private string GetResultBannerText()
@@ -797,21 +980,15 @@ namespace Expost.RuleReconstruction
 
             if (showMismatch)
             {
-                return $"WRONG {session.ValidationResult.WrongCellCount}";
+                return $"X {session.ValidationResult.WrongCellCount}";
             }
 
             if (showResult && IsComplete && session.ValidationResult.IsClear)
             {
-                return "CLEAR";
+                return "OK";
             }
 
             return string.Empty;
-        }
-
-        private string GetMismatchSummaryText()
-        {
-            var summary = RuleReconstructionMismatchAnalyzer.GetSummary(session.ResultBoard, CurrentStage.TargetBoard);
-            return $"WRONG {summary.Total} | NEED {summary.NeedMore} | OVER {summary.Excess}";
         }
 
         private Color GetResultTextColor()
@@ -827,17 +1004,6 @@ namespace Expost.RuleReconstruction
             }
 
             return Color.white;
-        }
-
-        private string GetRunningStatusText()
-        {
-            if (session.ActiveSourceIndex < 0 || session.ActiveSourceIndex >= CurrentStage.Sources.Count)
-            {
-                return "TESTING";
-            }
-
-            var source = CurrentStage.Sources[session.ActiveSourceIndex];
-            return $"Applying {source.Color}...";
         }
 
         private Color GetSourceColor(BoxColor color)
