@@ -1,6 +1,6 @@
 namespace Expost.RuleReconstruction
 {
-    internal enum ButtonIconKind
+    public enum ButtonIconKind
     {
         Previous,
         Next,

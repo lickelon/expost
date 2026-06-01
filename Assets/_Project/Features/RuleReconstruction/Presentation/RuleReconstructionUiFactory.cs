@@ -44,7 +44,10 @@ namespace Expost.RuleReconstruction
             var rectTransform = CreatePanel(name, parent, buttonColor);
             var button = rectTransform.gameObject.AddComponent<Button>();
             button.targetGraphic = rectTransform.GetComponent<Image>();
-            button.onClick.AddListener(onClick);
+            if (onClick != null)
+            {
+                button.onClick.AddListener(onClick);
+            }
 
             var text = CreateText("Text", rectTransform, label, fontSize, TextAnchor.MiddleCenter);
             Stretch(text.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
