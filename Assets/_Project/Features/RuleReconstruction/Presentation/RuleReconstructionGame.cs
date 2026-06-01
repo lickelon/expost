@@ -54,7 +54,7 @@ namespace Expost.RuleReconstruction
         private readonly Color rangeSlotOutlineColor = new(1f, 0.86f, 0.20f);
         private readonly Color effectSlotOutlineColor = new(0.35f, 0.95f, 0.56f);
         private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
-        private readonly Color wrongTextColor = new(1f, 0.86f, 0.20f);
+        private readonly Color wrongTextColor = new(1f, 0.45f, 0.18f);
         private readonly Color clearTextColor = new(0.35f, 0.95f, 0.56f);
 
         private void Awake()
@@ -120,6 +120,7 @@ namespace Expost.RuleReconstruction
                 return;
             }
 
+            DisableRaycastTarget(view.TestButton.transform.parent);
             view.PrevButton.onClick.RemoveAllListeners();
             view.PrevButton.onClick.AddListener(() => MoveStage(-1));
             view.NextButton.onClick.RemoveAllListeners();
@@ -129,6 +130,20 @@ namespace Expost.RuleReconstruction
             view.TargetButton.onClick.RemoveAllListeners();
             view.TargetButton.onClick.AddListener(ResetDisplay);
             view.RefreshStaticButtonVisuals();
+        }
+
+        private static void DisableRaycastTarget(Transform target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var graphic = target.GetComponent<Graphic>();
+            if (graphic != null)
+            {
+                graphic.raycastTarget = false;
+            }
         }
 
         private void BuildSidebar()
@@ -458,7 +473,7 @@ namespace Expost.RuleReconstruction
 
             if (showMismatch)
             {
-                return $"X {session.ValidationResult.WrongCellCount}";
+                return string.Empty;
             }
 
             if (showResult && IsComplete && session.ValidationResult.IsClear)

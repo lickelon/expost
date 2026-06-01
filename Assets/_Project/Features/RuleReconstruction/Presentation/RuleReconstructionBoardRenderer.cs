@@ -31,8 +31,8 @@ namespace Expost.RuleReconstruction
 
                 view.Background.color = cell.HasSource ? getSourceColor(cell.SourceColor) : cellColor;
                 view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
-                view.Label.fontSize = isWrong ? 14 : 25;
-                view.Label.color = isWrong ? wrongTextColor : isAffected ? affectedTextColor : Color.white;
+                view.Label.fontSize = 25;
+                view.Label.color = isWrong ? GetMismatchColor(cell, targetCell, wrongTextColor) : isAffected ? affectedTextColor : Color.white;
             }
         }
 
@@ -49,7 +49,12 @@ namespace Expost.RuleReconstruction
             }
 
             var difference = targetCell.Number - cell.Number;
-            return difference > 0 ? $"+{difference}\nNEED" : $"-{-difference}\nOVER";
+            return difference > 0 ? $"+{difference}" : $"-{-difference}";
+        }
+
+        private static Color GetMismatchColor(CellState cell, CellState targetCell, Color excessColor)
+        {
+            return targetCell.Number > cell.Number ? new Color(1f, 0.86f, 0.20f) : excessColor;
         }
     }
 }
