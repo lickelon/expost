@@ -74,31 +74,6 @@ namespace Expost.RuleReconstruction
             return view;
         }
 
-        public Text CreateFallbackAnalysisText(RectTransform parent, float top)
-        {
-            var text = ui.CreateText("StageAnalysis", parent, string.Empty, 12, TextAnchor.MiddleLeft);
-            RuleReconstructionUiFactory.Anchor(text.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, top), new Vector2(0f, top));
-            text.gameObject.SetActive(false);
-            return text;
-        }
-
-        public Button CreateFallbackRunButton(RectTransform actionRoot, UnityAction onClick)
-        {
-            return ui.CreateButton("TestButton", actionRoot, string.Empty, 16, onClick);
-        }
-
-        public Button CreateFallbackTargetButton(RectTransform actionRoot, UnityAction onClick)
-        {
-            return ui.CreateButton("TargetButton", actionRoot, string.Empty, 16, onClick);
-        }
-
-        public Text CreateFallbackStatusText(RectTransform actionRoot)
-        {
-            var status = ui.CreateText("Status", actionRoot, string.Empty, 15, TextAnchor.MiddleLeft);
-            RuleReconstructionUiFactory.Anchor(status.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), Vector2.zero, new Vector2(0f, 18f));
-            return status;
-        }
-
         private void AddRuleControls(RuleReconstructionSidebarView view, RectTransform parent, BoxColor color, float top)
         {
             var panel = ui.CreateButton($"{color}RulePanel", parent, string.Empty, 1, () => selectRuleColor(color));

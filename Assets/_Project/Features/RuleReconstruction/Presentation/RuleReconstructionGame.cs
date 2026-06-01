@@ -24,13 +24,11 @@ namespace Expost.RuleReconstruction
         private HashSet<GridPosition> activeAffectedCells = new();
         private Coroutine runRoutine;
         [SerializeField] private RuleReconstructionView view;
-        [SerializeField] private bool buildRuntimeLayoutWhenMissing = true;
         private BoxColor selectedRuleColor;
         private bool isRunning;
         private bool showResult;
         private bool showMismatch;
         private bool showResultBanner;
-        private bool usingSceneView;
         private Canvas canvas;
         private RectTransform sidebar;
         private RectTransform boardPanel;
@@ -48,8 +46,6 @@ namespace Expost.RuleReconstruction
         private RuleReconstructionUiFactory ui;
         private RuleReconstructionSidebarView sidebarView;
 
-        private readonly Color pageColor = new(0.18f, 0.29f, 0.47f);
-        private readonly Color panelColor = new(0.13f, 0.23f, 0.39f);
         private readonly Color cellColor = new(0.16f, 0.17f, 0.19f);
         private readonly Color buttonColor = new(0.28f, 0.37f, 0.50f);
         private readonly Color rulePanelColor = new(0.17f, 0.29f, 0.48f);
@@ -78,24 +74,14 @@ namespace Expost.RuleReconstruction
             uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             ui = new RuleReconstructionUiFactory(uiFont, buttonColor);
 
-            usingSceneView = TryBindSceneView();
-            if (!usingSceneView)
+            if (!TryBindSceneView())
             {
-                if (!buildRuntimeLayoutWhenMissing)
-                {
-                    Debug.LogError("RuleReconstructionGame requires a bound RuleReconstructionView.", this);
-                    return;
-                }
-
-                CreateCanvas();
-                BuildLayout();
-            }
-            else
-            {
-                BuildSidebar();
-                BuildBoardCells();
+                Debug.LogError("RuleReconstructionGame requires scene-defined RuleReconstructionView references.", this);
+                return;
             }
 
+            BuildSidebar();
+            BuildBoardCells();
             WireStaticButtons();
             ResetDisplay();
         }
@@ -165,48 +151,6 @@ namespace Expost.RuleReconstruction
             RuleReconstructionLayout.AnchorActionButtons(view.TestButton, view.TargetButton);
         }
 
-        private void CreateCanvas()
-        {
-            RuleReconstructionCanvasFactory.EnsureEventSystem(true);
-            canvas = RuleReconstructionCanvasFactory.Create(transform, pageColor);
-        }
-
-        private void BuildLayout()
-        {
-            ClearCanvasChildren();
-
-            var staticView = RuleReconstructionStaticViewFactory.Create(canvas, ui, pageColor, panelColor);
-            sidebar = staticView.Sidebar;
-            boardPanel = staticView.BoardPanel;
-            titleText = staticView.TitleText;
-            boardTitleText = staticView.BoardTitleText;
-            statusText = staticView.StatusText;
-            analysisText = staticView.AnalysisText;
-            resultBannerText = staticView.ResultBannerText;
-            prevButton = staticView.PrevButton;
-            nextButton = staticView.NextButton;
-            testButton = staticView.TestButton;
-            targetButton = staticView.TargetButton;
-
-            BuildSidebar();
-            BuildBoardCells();
-
-            view = canvas.gameObject.AddComponent<RuleReconstructionView>();
-            view.Bind(
-                canvas,
-                sidebar,
-                boardPanel,
-                titleText,
-                boardTitleText,
-                statusText,
-                analysisText,
-                resultBannerText,
-                prevButton,
-                nextButton,
-                testButton,
-                targetButton);
-        }
-
         private void BuildSidebar()
         {
             var stageColors = StageRuleAnalyzer.GetStageColors(CurrentStage);
@@ -230,18 +174,6 @@ namespace Expost.RuleReconstruction
                 affectedTextColor);
             sidebarView = builder.Build(sidebar, stageColors);
 
-            if (usingSceneView)
-            {
-                return;
-            }
-            var actionRoot = (RectTransform)sidebar.Find("Actions");
-            analysisText = builder.CreateFallbackAnalysisText((RectTransform)sidebar.Find("SidebarContent"), -176f);
-            testButton = builder.CreateFallbackRunButton(actionRoot, StartRun);
-            targetButton = builder.CreateFallbackTargetButton(actionRoot, ResetDisplay);
-            RuleReconstructionIconFactory.ApplyToButton(testButton, ButtonIconKind.Run, 22f);
-            RuleReconstructionIconFactory.ApplyToButton(targetButton, ButtonIconKind.Target, 22f);
-            RuleReconstructionLayout.AnchorActionButtons(testButton, targetButton);
-            statusText = builder.CreateFallbackStatusText(actionRoot);
         }
 
         private static string GetEffectLabel(EffectType effect)
@@ -595,14 +527,6 @@ namespace Expost.RuleReconstruction
             }
 
             return false;
-        }
-
-        private void ClearCanvasChildren()
-        {
-            foreach (Transform child in canvas.transform)
-            {
-                Destroy(child.gameObject);
-            }
         }
 
         private bool IsComplete => session.IsComplete;
