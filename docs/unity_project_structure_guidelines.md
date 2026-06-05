@@ -209,7 +209,7 @@ Assets/
     Features/
       RuleReconstruction/
         Application/
-          RuleReconstructionSession.cs
+          PuzzleSession.cs
         Domain/
           PrototypeStageFactory.cs
           PuzzleModel.cs
@@ -220,7 +220,7 @@ Assets/
           StageAsset.cs
           StageRepository.cs
         Presentation/
-          RuleReconstructionGame.cs
+          GameController.cs
 ```
 
 판단:

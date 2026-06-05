@@ -29,7 +29,7 @@
 
 작업:
 
-- `RuleReconstructionGame` 역할 축소
+- `GameController` 역할 축소
 - 런타임 로직과 UI 바인딩 분리
 - 임시 코드 생성 UI 제거
 - 씬/프리팹 기반 UI로 전환
@@ -220,7 +220,7 @@
 
 추천 순서:
 
-1. `RuleReconstructionGame` 역할 분해
+1. `GameController` 역할 분해
 2. 씬/프리팹 기반 UI 구조 정리
 3. 런타임 세션과 UI 바인딩 분리
 4. 기존 플레이 흐름 유지 확인

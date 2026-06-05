@@ -27,7 +27,7 @@
 ## 목표 씬 구조
 
 ```text
-RuleReconstructionScreen
+Game Screen
   Header
     StageTitleText
     PrevButton
@@ -110,10 +110,10 @@ Prev, Next, Test, Target 같은 아이콘 버튼이다.
 ## 예상 클래스 역할
 
 ```text
-RuleReconstructionGame
+GameController
   세션 상태와 View 바인딩을 조율한다.
 
-RuleReconstructionScreenView
+GameView
   씬에 배치된 루트 UI 참조를 가진다.
 
 RuleCardView
@@ -125,7 +125,7 @@ BlockButtonView
 BoardCellView
   BoardCell.prefab의 표시 상태를 갱신한다.
 
-RuleReconstructionBoardRenderer
+BoardRenderer
   BoardCellView 풀 또는 인스턴스를 관리하고 보드 상태를 표시한다.
 ```
 
@@ -133,7 +133,7 @@ RuleReconstructionBoardRenderer
 
 ### 1단계: 씬 루트 정리
 
-- `RuleReconstructionScreen` 루트 오브젝트를 씬에 만든다.
+- 게임 화면 루트 오브젝트를 씬에 만든다.
 - Header, Sidebar, BoardArea, ActionButtonRoot를 씬에 배치한다.
 - 현재 코드가 생성하는 고정 루트 패널을 씬 참조로 교체한다.
 
@@ -188,7 +188,7 @@ RuleReconstructionBoardRenderer
 
 ### 6단계: 임시 UI Factory 축소
 
-- `RuleReconstructionUiFactory`의 책임을 제거하거나 테스트 보조 수준으로 축소한다.
+- `UiFactory`의 책임을 제거하거나 테스트 보조 수준으로 축소한다.
 - Presentation 코드는 프리팹 인스턴스와 View 컴포넌트 중심으로 정리한다.
 
 완료 기준:
