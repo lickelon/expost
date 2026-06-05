@@ -7,6 +7,8 @@ namespace Expost.RuleReconstruction
         Run,
         Target,
         Check,
-        Cross
+        Cross,
+        Plus,
+        Minus
     }
 }

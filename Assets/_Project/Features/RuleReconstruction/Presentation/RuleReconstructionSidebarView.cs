@@ -8,8 +8,9 @@ namespace Expost.RuleReconstruction
         public readonly Dictionary<BoxColor, Image> SourceSlotImages = new();
         public readonly Dictionary<BoxColor, RulePreviewView> PreviewViews = new();
         public readonly Dictionary<BoxColor, RangeIconView> RangeIconViews = new();
-        public readonly Dictionary<BoxColor, Text> EffectIconTexts = new();
+        public readonly Dictionary<BoxColor, Image> EffectIconImages = new();
         public readonly Dictionary<BoxColor, Image> RulePanelImages = new();
+        public readonly Dictionary<BoxColor, Image> RuleSelectionIndicators = new();
         public readonly Dictionary<BoxColor, Outline> RulePanelOutlines = new();
         public readonly Dictionary<DirectionType, RulePreviewView> DirectionBlockPreviews = new();
         public readonly Dictionary<DirectionType, Outline> DirectionBlockOutlines = new();

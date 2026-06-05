@@ -13,6 +13,7 @@ namespace Expost.RuleReconstruction
             bool showMismatch,
             HashSet<GridPosition> activeAffectedCells,
             Color cellColor,
+            Color numberTextColor,
             Color wrongTextColor,
             Color affectedTextColor,
             Func<BoxColor, Color> getSourceColor)
@@ -31,8 +32,8 @@ namespace Expost.RuleReconstruction
 
                 view.Background.color = cell.HasSource ? getSourceColor(cell.SourceColor) : cellColor;
                 view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
-                view.Label.fontSize = 25;
-                view.Label.color = isWrong ? GetMismatchColor(cell, targetCell, wrongTextColor) : isAffected ? affectedTextColor : Color.white;
+                view.Label.fontSize = 21;
+                view.Label.color = isWrong ? GetMismatchColor(cell, targetCell, wrongTextColor) : isAffected ? affectedTextColor : numberTextColor;
             }
         }
 

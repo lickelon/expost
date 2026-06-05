@@ -19,37 +19,48 @@ namespace Expost.RuleReconstruction
     public static class RuleReconstructionBoardBuilder
     {
         public static RuleReconstructionBoardView Build(
-            RuleReconstructionUiFactory ui,
-            RectTransform boardPanel,
-            RectTransform existingRoot,
+            RectTransform boardRoot,
             Text resultBannerText,
             StageData stage,
-            Color cellColor)
+            Color cellColor,
+            RuleReconstructionBoardCell cellPrefab)
         {
-            if (existingRoot != null)
-            {
-                Object.Destroy(existingRoot.gameObject);
-            }
-
-            var boardRoot = ui.CreatePanel("Board", boardPanel, Color.clear);
-            RuleReconstructionUiFactory.Anchor(boardRoot, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-182f, -182f), new Vector2(182f, 182f));
             resultBannerText.rectTransform.SetAsLastSibling();
 
-            var grid = boardRoot.gameObject.AddComponent<GridLayoutGroup>();
-            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            grid.constraintCount = 5;
-            grid.cellSize = new Vector2(68f, 68f);
-            grid.spacing = new Vector2(4f, 4f);
-
             var cells = new List<BoardCellView>();
+            var existingCells = new List<RuleReconstructionBoardCell>();
+            foreach (Transform child in boardRoot)
+            {
+                if (child.TryGetComponent<RuleReconstructionBoardCell>(out var existingCell))
+                {
+                    existingCells.Add(existingCell);
+                }
+            }
+
+            var requiredCount = stage.Width * stage.Height;
+            while (existingCells.Count < requiredCount)
+            {
+                existingCells.Add(Object.Instantiate(cellPrefab, boardRoot));
+            }
+
+            for (var index = requiredCount; index < existingCells.Count; index++)
+            {
+                existingCells[index].gameObject.SetActive(false);
+            }
+
+            var cellIndex = 0;
             for (var y = stage.Height - 1; y >= 0; y--)
             {
                 for (var x = 0; x < stage.Width; x++)
                 {
-                    var cell = ui.CreatePanel($"Cell{x}_{y}", boardRoot, cellColor);
-                    var label = ui.CreateText("Value", cell, string.Empty, 25, TextAnchor.MiddleCenter);
-                    RuleReconstructionUiFactory.Stretch(label.rectTransform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-                    cells.Add(new BoardCellView(new GridPosition(x, y), cell.GetComponent<Image>(), label));
+                    var cell = existingCells[cellIndex];
+                    cell.name = $"Cell{x}_{y}";
+                    cell.gameObject.SetActive(true);
+                    cell.Background.color = cellColor;
+                    cell.Label.text = string.Empty;
+                    cell.Label.fontSize = 21;
+                    cells.Add(new BoardCellView(new GridPosition(x, y), cell.Background, cell.Label));
+                    cellIndex++;
                 }
             }
 

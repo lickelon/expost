@@ -33,29 +33,34 @@ namespace Expost.RuleReconstruction
         private RectTransform sidebar;
         private RectTransform boardPanel;
         private RectTransform boardRoot;
+        private RectTransform ruleListRoot;
+        private RectTransform directionBlockRoot;
+        private RectTransform rangeBlockRoot;
+        private RectTransform effectBlockRoot;
         private Text titleText;
         private Text boardTitleText;
         private Text statusText;
         private Text analysisText;
         private Text resultBannerText;
+        private Image resultBannerIcon;
         private Button prevButton;
         private Button nextButton;
         private Button testButton;
         private Button targetButton;
-        private Font uiFont;
-        private RuleReconstructionUiFactory ui;
         private RuleReconstructionSidebarView sidebarView;
 
-        private readonly Color cellColor = new(0.16f, 0.17f, 0.19f);
-        private readonly Color buttonColor = new(0.28f, 0.37f, 0.50f);
-        private readonly Color rulePanelColor = new(0.17f, 0.29f, 0.48f);
-        private readonly Color selectedRuleOutlineColor = new(0.54f, 0.93f, 1f);
-        private readonly Color directionSlotOutlineColor = new(0.54f, 0.93f, 1f);
-        private readonly Color rangeSlotOutlineColor = new(1f, 0.86f, 0.20f);
-        private readonly Color effectSlotOutlineColor = new(0.35f, 0.95f, 0.56f);
-        private readonly Color affectedTextColor = new(0.54f, 0.93f, 1f);
-        private readonly Color wrongTextColor = new(1f, 0.45f, 0.18f);
-        private readonly Color clearTextColor = new(0.35f, 0.95f, 0.56f);
+        private readonly Color backgroundColor = new(0.96f, 0.96f, 0.92f);
+        private readonly Color cellColor = new(0.97f, 0.96f, 0.89f);
+        private readonly Color numberTextColor = new(0.18f, 0.20f, 0.19f);
+        private readonly Color buttonColor = new(0.89f, 0.91f, 0.84f);
+        private readonly Color rulePanelColor = new(0.93f, 0.94f, 0.89f, 0.22f);
+        private readonly Color selectedRuleOutlineColor = new(0.20f, 0.52f, 0.72f, 0.82f);
+        private readonly Color directionSlotOutlineColor = new(0.18f, 0.66f, 0.80f);
+        private readonly Color rangeSlotOutlineColor = new(0.88f, 0.70f, 0.16f);
+        private readonly Color effectSlotOutlineColor = new(0.24f, 0.68f, 0.38f);
+        private readonly Color affectedTextColor = new(0.12f, 0.58f, 0.70f);
+        private readonly Color wrongTextColor = new(0.94f, 0.36f, 0.18f);
+        private readonly Color clearTextColor = new(0.18f, 0.62f, 0.34f);
 
         private void Awake()
         {
@@ -71,8 +76,6 @@ namespace Expost.RuleReconstruction
 
             session = new RuleReconstructionSession(StageRepository.LoadStages(), AllColors);
             selectedRuleColor = StageRuleAnalyzer.GetStageColors(CurrentStage)[0];
-            uiFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            ui = new RuleReconstructionUiFactory(uiFont, buttonColor);
 
             if (!TryBindSceneView())
             {
@@ -80,6 +83,7 @@ namespace Expost.RuleReconstruction
                 return;
             }
 
+            ApplyTheme();
             BuildSidebar();
             BuildBoardCells();
             WireStaticButtons();
@@ -101,16 +105,119 @@ namespace Expost.RuleReconstruction
             canvas = view.Canvas;
             sidebar = view.DynamicSidebarRoot;
             boardPanel = view.BoardPanel;
+            boardRoot = view.BoardRoot;
+            ruleListRoot = view.RuleListRoot;
+            directionBlockRoot = view.DirectionBlockRoot;
+            rangeBlockRoot = view.RangeBlockRoot;
+            effectBlockRoot = view.EffectBlockRoot;
             titleText = view.TitleText;
             boardTitleText = view.BoardTitleText;
             statusText = view.StatusText;
             analysisText = view.AnalysisText;
             resultBannerText = view.ResultBannerText;
+            resultBannerIcon = view.ResultBannerIcon;
             prevButton = view.PrevButton;
             nextButton = view.NextButton;
             testButton = view.TestButton;
             targetButton = view.TargetButton;
             return true;
+        }
+
+        private void ApplyTheme()
+        {
+            SetImageColor(canvas.transform, backgroundColor);
+            SetImageColor(canvas.transform.Find("Root"), backgroundColor);
+            SetImageColor(sidebar, Color.clear);
+            SetImageColor(boardPanel, Color.clear);
+            SetImageColor(testButton.transform.parent, Color.clear);
+
+            titleText.color = new Color(numberTextColor.r, numberTextColor.g, numberTextColor.b, 0.76f);
+            titleText.fontSize = 20;
+            boardTitleText.color = numberTextColor;
+            statusText.color = numberTextColor;
+            analysisText.color = numberTextColor;
+            resultBannerText.color = clearTextColor;
+            resultBannerText.fontSize = 22;
+            resultBannerText.alignment = TextAnchor.MiddleCenter;
+
+            ArrangeNavigationButtons();
+            ArrangeActionButtons();
+            ArrangeResultBanner();
+            DisableButtonTransition(prevButton);
+            DisableButtonTransition(nextButton);
+            DisableButtonTransition(testButton);
+            DisableButtonTransition(targetButton);
+        }
+
+        private static void SetImageColor(Transform target, Color color)
+        {
+            if (target == null)
+            {
+                return;
+            }
+
+            var image = target.GetComponent<Image>();
+            if (image != null)
+            {
+                image.color = color;
+            }
+        }
+
+        private static void DisableButtonTransition(Button button)
+        {
+            if (button != null)
+            {
+                button.transition = Selectable.Transition.None;
+            }
+        }
+
+        private void ArrangeActionButtons()
+        {
+            ArrangeActionButton(testButton, new Vector2(-26f, 0f));
+            ArrangeActionButton(targetButton, new Vector2(26f, 0f));
+        }
+
+        private void ArrangeNavigationButtons()
+        {
+            ArrangeNavigationButton(prevButton, new Vector2(-55f, -18f));
+            ArrangeNavigationButton(nextButton, new Vector2(-17f, -18f));
+        }
+
+        private static void ArrangeNavigationButton(Button button, Vector2 center)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var rect = button.GetComponent<RectTransform>();
+            RuleReconstructionUiFactory.Anchor(rect, new Vector2(1f, 1f), new Vector2(1f, 1f), center + new Vector2(-16f, -16f), center + new Vector2(16f, 16f));
+        }
+
+        private static void ArrangeActionButton(Button button, Vector2 center)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var rect = button.GetComponent<RectTransform>();
+            RuleReconstructionUiFactory.Anchor(rect, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), center + new Vector2(-22f, -18f), center + new Vector2(22f, 18f));
+        }
+
+        private void ArrangeResultBanner()
+        {
+            if (resultBannerText == null)
+            {
+                return;
+            }
+
+            RuleReconstructionUiFactory.Anchor(
+                resultBannerText.rectTransform,
+                new Vector2(0.5f, 0.5f),
+                new Vector2(0.5f, 0.5f),
+                new Vector2(136f, 154f),
+                new Vector2(220f, 194f));
         }
 
         private void WireStaticButtons()
@@ -128,7 +235,7 @@ namespace Expost.RuleReconstruction
             view.TestButton.onClick.RemoveAllListeners();
             view.TestButton.onClick.AddListener(StartRun);
             view.TargetButton.onClick.RemoveAllListeners();
-            view.TargetButton.onClick.AddListener(ResetDisplay);
+            view.TargetButton.onClick.AddListener(ShowTarget);
             view.RefreshStaticButtonVisuals();
         }
 
@@ -155,25 +262,22 @@ namespace Expost.RuleReconstruction
             }
 
             var builder = new RuleReconstructionSidebarBuilder(
-                ui,
                 GetSourceColor,
                 SelectRuleColor,
                 ApplyDirectionBlock,
                 ApplyRangeBlock,
                 ApplyEffectBlock,
-                buttonColor,
                 selectedRuleOutlineColor,
                 directionSlotOutlineColor,
                 rangeSlotOutlineColor,
                 effectSlotOutlineColor,
-                affectedTextColor);
-            sidebarView = builder.Build(sidebar, stageColors);
+                affectedTextColor,
+                view.RuleCardPrefab,
+                view.DirectionBlockPrefab,
+                view.RangeBlockPrefab,
+                view.EffectBlockPrefab);
+            sidebarView = builder.Build(ruleListRoot, directionBlockRoot, rangeBlockRoot, effectBlockRoot, stageColors);
 
-        }
-
-        private static string GetEffectLabel(EffectType effect)
-        {
-            return effect == EffectType.SubtractNumber ? "-1" : "+1";
         }
 
         private void BuildBoardCells()
@@ -185,8 +289,7 @@ namespace Expost.RuleReconstruction
                 return;
             }
 
-            var boardView = RuleReconstructionBoardBuilder.Build(ui, boardPanel, boardRoot, resultBannerText, CurrentStage, cellColor);
-            boardRoot = boardView.Root;
+            var boardView = RuleReconstructionBoardBuilder.Build(boardRoot, resultBannerText, CurrentStage, cellColor, view.BoardCellPrefab);
             boardCells.AddRange(boardView.Cells);
         }
 
@@ -210,15 +313,16 @@ namespace Expost.RuleReconstruction
 
         private void UpdateTexts()
         {
-            titleText.text = $"{session.StageIndex + 1:00}/{session.StageCount:00} {GetStageTitleName()}";
+            titleText.text = $"{session.StageIndex + 1:00}/{session.StageCount:00}";
             boardTitleText.text = string.Empty;
             statusText.text = string.Empty;
-            resultBannerText.text = GetResultBannerText();
-            resultBannerText.color = GetResultTextColor();
-            resultBannerText.enabled = !string.IsNullOrEmpty(resultBannerText.text);
+            resultBannerText.text = string.Empty;
+            resultBannerText.enabled = false;
+            UpdateResultBannerIcon();
 
             analysisText.text = string.Empty;
             UpdateNavigationButtons();
+            UpdateActionButtons();
         }
 
         private void UpdateNavigationButtons()
@@ -243,19 +347,47 @@ namespace Expost.RuleReconstruction
 
             if (button.targetGraphic != null)
             {
-                button.targetGraphic.color = interactable ? buttonColor : new Color(0.16f, 0.24f, 0.36f);
+                button.targetGraphic.color = interactable ? new Color(0.89f, 0.91f, 0.84f, 0.42f) : new Color(0.89f, 0.91f, 0.84f, 0.08f);
             }
 
             var label = button.GetComponentInChildren<Text>();
             if (label != null)
             {
-                label.color = interactable ? Color.white : new Color(1f, 1f, 1f, 0.42f);
+                label.color = interactable ? numberTextColor : new Color(0.17f, 0.20f, 0.22f, 0.38f);
             }
 
             var icon = button.transform.Find("Icon")?.GetComponent<Image>();
             if (icon != null)
             {
-                icon.color = interactable ? Color.white : new Color(1f, 1f, 1f, 0.42f);
+                icon.color = interactable ? numberTextColor : new Color(0.17f, 0.20f, 0.22f, 0.24f);
+            }
+        }
+
+        private void UpdateActionButtons()
+        {
+            SetActionButtonState(testButton, !showResult || showMismatch);
+            SetActionButtonState(targetButton, showResult && !showMismatch);
+        }
+
+        private void SetActionButtonState(Button button, bool active)
+        {
+            if (button == null)
+            {
+                return;
+            }
+
+            var interactable = active && !isRunning;
+            button.interactable = interactable;
+
+            if (button.targetGraphic != null)
+            {
+                button.targetGraphic.color = interactable ? new Color(0.89f, 0.91f, 0.84f, 0.42f) : new Color(0.89f, 0.91f, 0.84f, 0.12f);
+            }
+
+            var icon = button.transform.Find("Icon")?.GetComponent<Image>();
+            if (icon != null)
+            {
+                icon.color = interactable ? numberTextColor : new Color(0.17f, 0.20f, 0.22f, 0.28f);
             }
         }
 
@@ -263,10 +395,13 @@ namespace Expost.RuleReconstruction
         {
             foreach (var color in StageRuleAnalyzer.GetStageColors(CurrentStage))
             {
+                var isSelected = color == selectedRuleColor;
                 sidebarView.RulePanelImages[color].color = rulePanelColor;
-                sidebarView.RulePanelOutlines[color].enabled = color == selectedRuleColor;
+                sidebarView.RulePanelOutlines[color].enabled = false;
+                sidebarView.RuleSelectionIndicators[color].color = GetSourceColor(color);
+                sidebarView.RuleSelectionIndicators[color].enabled = isSelected;
                 RuleReconstructionSidebarBuilder.UpdateRangeIcon(sidebarView.RangeIconViews[color], session.GetRange(color));
-                sidebarView.EffectIconTexts[color].text = GetEffectLabel(session.GetEffect(color));
+                sidebarView.EffectIconImages[color].sprite = RuleReconstructionIconFactory.Get(RuleReconstructionSidebarBuilder.GetEffectIconKind(session.GetEffect(color)));
             }
 
             UpdateBlockSelection();
@@ -322,7 +457,7 @@ namespace Expost.RuleReconstruction
                     }
                     else
                     {
-                        cell.color = affected.Contains(index) ? affectedTextColor : new Color(0.28f, 0.36f, 0.48f);
+                        cell.color = affected.Contains(index) ? affectedTextColor : new Color(0.78f, 0.82f, 0.78f, 0.52f);
                     }
                 }
             }
@@ -337,6 +472,7 @@ namespace Expost.RuleReconstruction
                 showMismatch,
                 activeAffectedCells,
                 cellColor,
+                numberTextColor,
                 wrongTextColor,
                 affectedTextColor,
                 GetSourceColor);
@@ -365,22 +501,27 @@ namespace Expost.RuleReconstruction
         private void ApplyDirectionBlock(DirectionType direction)
         {
             session.SetDirection(selectedRuleColor, direction);
-            ResetDisplay();
+            ResetAttemptState();
         }
 
         private void ApplyRangeBlock(RangeType range)
         {
             session.SetRange(selectedRuleColor, range);
-            ResetDisplay();
+            ResetAttemptState();
         }
 
         private void ApplyEffectBlock(EffectType effect)
         {
             session.SetEffect(selectedRuleColor, effect);
-            ResetDisplay();
+            ResetAttemptState();
         }
 
         private void ResetDisplay()
+        {
+            ShowTarget();
+        }
+
+        private void ShowTarget()
         {
             StopRunRoutine();
             session.ResetSimulation();
@@ -388,6 +529,14 @@ namespace Expost.RuleReconstruction
             displayBoard = CurrentStage.TargetBoard;
             showResult = false;
             showMismatch = false;
+            showResultBanner = false;
+        }
+
+        private void ResetAttemptState()
+        {
+            StopRunRoutine();
+            session.ResetSimulation();
+            activeAffectedCells.Clear();
             showResultBanner = false;
         }
 
@@ -456,57 +605,26 @@ namespace Expost.RuleReconstruction
             isRunning = false;
         }
 
-        private string GetStageTitleName()
+        private void UpdateResultBannerIcon()
         {
-            var name = CurrentStage.Name;
-            return name.Length > 3 && char.IsDigit(name[0]) && char.IsDigit(name[1]) && name[2] == ' '
-                ? name.Substring(3)
-                : name;
-        }
-
-        private string GetResultBannerText()
-        {
-            if (!showResultBanner)
+            if (resultBannerIcon == null)
             {
-                return string.Empty;
+                return;
             }
 
-            if (showMismatch)
-            {
-                return string.Empty;
-            }
-
-            if (showResult && IsComplete && session.ValidationResult.IsClear)
-            {
-                return "OK";
-            }
-
-            return string.Empty;
-        }
-
-        private Color GetResultTextColor()
-        {
-            if (showMismatch)
-            {
-                return wrongTextColor;
-            }
-
-            if (showResult && session.ValidationResult.IsClear)
-            {
-                return clearTextColor;
-            }
-
-            return Color.white;
+            var showClear = showResultBanner && !showMismatch && showResult && IsComplete && session.ValidationResult.IsClear;
+            resultBannerIcon.enabled = showClear;
+            resultBannerIcon.color = clearTextColor;
         }
 
         private Color GetSourceColor(BoxColor color)
         {
             return color switch
             {
-                BoxColor.Red => new Color(0.82f, 0.18f, 0.16f),
-                BoxColor.Blue => new Color(0.14f, 0.36f, 0.88f),
-                BoxColor.Green => new Color(0.13f, 0.64f, 0.28f),
-                BoxColor.Yellow => new Color(0.92f, 0.74f, 0.16f),
+                BoxColor.Red => new Color(0.88f, 0.18f, 0.16f),
+                BoxColor.Blue => new Color(0.16f, 0.40f, 0.86f),
+                BoxColor.Green => new Color(0.16f, 0.66f, 0.34f),
+                BoxColor.Yellow => new Color(0.94f, 0.76f, 0.18f),
                 _ => cellColor
             };
         }

@@ -17,23 +17,15 @@ namespace Expost.RuleReconstruction
             }
 
             var icon = button.transform.Find("Icon")?.GetComponent<Image>();
-            RectTransform iconRect;
             if (icon == null)
             {
-                var iconObject = new GameObject("Icon");
-                iconObject.transform.SetParent(button.transform, false);
-                iconRect = iconObject.AddComponent<RectTransform>();
-                icon = iconObject.AddComponent<Image>();
-                icon.raycastTarget = false;
-            }
-            else
-            {
-                iconRect = icon.GetComponent<RectTransform>();
+                return;
             }
 
             icon.sprite = Get(kind);
             icon.color = Color.white;
             icon.preserveAspect = true;
+            var iconRect = icon.GetComponent<RectTransform>();
             iconRect.SetAsLastSibling();
             RuleReconstructionUiFactory.Anchor(
                 iconRect,
@@ -88,6 +80,12 @@ namespace Expost.RuleReconstruction
                 case ButtonIconKind.Cross:
                     FillCross(texture);
                     break;
+                case ButtonIconKind.Plus:
+                    FillPlus(texture);
+                    break;
+                case ButtonIconKind.Minus:
+                    FillMinus(texture);
+                    break;
             }
 
             texture.Apply();
@@ -121,6 +119,17 @@ namespace Expost.RuleReconstruction
                 FillRect(texture, 8 + offset, 8 + offset, 5, 5);
                 FillRect(texture, 20 - offset, 8 + offset, 5, 5);
             }
+        }
+
+        private static void FillPlus(Texture2D texture)
+        {
+            FillRect(texture, 7, 14, 18, 5);
+            FillRect(texture, 14, 7, 5, 18);
+        }
+
+        private static void FillMinus(Texture2D texture)
+        {
+            FillRect(texture, 7, 14, 18, 5);
         }
 
         private static void FillTriangle(Texture2D texture, Vector2Int a, Vector2Int b, Vector2Int c)
