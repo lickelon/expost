@@ -8,14 +8,8 @@ namespace Expost.RuleReconstruction
     {
         private static readonly Dictionary<ButtonIconKind, Sprite> Sprites = new();
 
-        public static void ApplyToButton(Button button, ButtonIconKind kind, float size)
+        public static void ApplyToButton(Button button, ButtonIconKind kind)
         {
-            var text = button.GetComponentInChildren<Text>();
-            if (text != null)
-            {
-                text.text = string.Empty;
-            }
-
             var icon = button.transform.Find("Icon")?.GetComponent<Image>();
             if (icon == null)
             {
@@ -23,16 +17,7 @@ namespace Expost.RuleReconstruction
             }
 
             icon.sprite = Get(kind);
-            icon.color = Color.white;
             icon.preserveAspect = true;
-            var iconRect = icon.GetComponent<RectTransform>();
-            iconRect.SetAsLastSibling();
-            RuleReconstructionUiFactory.Anchor(
-                iconRect,
-                new Vector2(0.5f, 0.5f),
-                new Vector2(0.5f, 0.5f),
-                new Vector2(-size * 0.5f, -size * 0.5f),
-                new Vector2(size * 0.5f, size * 0.5f));
         }
 
         public static Sprite Get(ButtonIconKind kind)

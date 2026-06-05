@@ -8,19 +8,13 @@ namespace Expost.RuleReconstruction
 {
     public sealed class RuleReconstructionSidebarBuilder
     {
-        private static readonly Color RulePanelSurfaceColor = new(0.93f, 0.94f, 0.89f, 0.22f);
-        private static readonly Color PreviewIdleColor = new(0.80f, 0.84f, 0.80f, 0.48f);
-
         private readonly Func<BoxColor, Color> getSourceColor;
         private readonly UnityAction<BoxColor> selectRuleColor;
         private readonly UnityAction<DirectionType> applyDirection;
         private readonly UnityAction<RangeType> applyRange;
         private readonly UnityAction<EffectType> applyEffect;
-        private readonly Color selectedRuleOutlineColor;
-        private readonly Color directionSlotOutlineColor;
-        private readonly Color rangeSlotOutlineColor;
-        private readonly Color effectSlotOutlineColor;
         private readonly Color affectedTextColor;
+        private readonly Color previewIdleColor;
         private readonly RuleReconstructionRuleCard ruleCardPrefab;
         private readonly RuleReconstructionBlockButton directionBlockPrefab;
         private readonly RuleReconstructionBlockButton rangeBlockPrefab;
@@ -32,11 +26,8 @@ namespace Expost.RuleReconstruction
             UnityAction<DirectionType> applyDirection,
             UnityAction<RangeType> applyRange,
             UnityAction<EffectType> applyEffect,
-            Color selectedRuleOutlineColor,
-            Color directionSlotOutlineColor,
-            Color rangeSlotOutlineColor,
-            Color effectSlotOutlineColor,
             Color affectedTextColor,
+            Color previewIdleColor,
             RuleReconstructionRuleCard ruleCardPrefab,
             RuleReconstructionBlockButton directionBlockPrefab,
             RuleReconstructionBlockButton rangeBlockPrefab,
@@ -47,11 +38,8 @@ namespace Expost.RuleReconstruction
             this.applyDirection = applyDirection;
             this.applyRange = applyRange;
             this.applyEffect = applyEffect;
-            this.selectedRuleOutlineColor = selectedRuleOutlineColor;
-            this.directionSlotOutlineColor = directionSlotOutlineColor;
-            this.rangeSlotOutlineColor = rangeSlotOutlineColor;
-            this.effectSlotOutlineColor = effectSlotOutlineColor;
             this.affectedTextColor = affectedTextColor;
+            this.previewIdleColor = previewIdleColor;
             this.ruleCardPrefab = ruleCardPrefab;
             this.directionBlockPrefab = directionBlockPrefab;
             this.rangeBlockPrefab = rangeBlockPrefab;
@@ -133,14 +121,11 @@ namespace Expost.RuleReconstruction
             card.name = $"{color}RuleCard";
             card.Button.onClick.RemoveAllListeners();
             card.Button.onClick.AddListener(() => selectRuleColor(color));
-            card.PanelImage.color = RulePanelSurfaceColor;
-            card.PanelOutline.effectColor = selectedRuleOutlineColor;
             card.PanelOutline.enabled = false;
             card.SelectionIndicator.color = getSourceColor(color);
             card.SelectionIndicator.enabled = false;
             card.SourceSlotImage.color = getSourceColor(color);
             card.EffectIconImage.sprite = RuleReconstructionIconFactory.Get(ButtonIconKind.Plus);
-            card.EffectIconImage.color = affectedTextColor;
 
             view.RulePanelImages[color] = card.PanelImage;
             view.RulePanelOutlines[color] = card.PanelOutline;
@@ -156,7 +141,6 @@ namespace Expost.RuleReconstruction
             block.name = $"Block{direction}";
             block.Button.onClick.RemoveAllListeners();
             block.Button.onClick.AddListener(() => applyDirection(direction));
-            block.SelectionOutline.effectColor = directionSlotOutlineColor;
             block.SelectionOutline.enabled = false;
             view.DirectionBlockOutlines[direction] = block.SelectionOutline;
             view.DirectionBlockPreviews[direction] = block.DirectionPreview.ToView();
@@ -165,7 +149,7 @@ namespace Expost.RuleReconstruction
             var cells = block.DirectionPreview.Cells;
             for (var index = 0; index < cells.Count; index++)
             {
-                cells[index].color = affected.Contains(index) ? affectedTextColor : PreviewIdleColor;
+                cells[index].color = affected.Contains(index) ? affectedTextColor : previewIdleColor;
             }
         }
 
@@ -174,7 +158,6 @@ namespace Expost.RuleReconstruction
             block.name = $"Block{range}";
             block.Button.onClick.RemoveAllListeners();
             block.Button.onClick.AddListener(() => applyRange(range));
-            block.SelectionOutline.effectColor = rangeSlotOutlineColor;
             block.SelectionOutline.enabled = false;
             view.RangeBlockOutlines[range] = block.SelectionOutline;
             UpdateRangeIcon(block.RangeIcon.ToView(), range);
@@ -185,10 +168,8 @@ namespace Expost.RuleReconstruction
             block.name = $"Block{effect}";
             block.Button.onClick.RemoveAllListeners();
             block.Button.onClick.AddListener(() => applyEffect(effect));
-            block.SelectionOutline.effectColor = effectSlotOutlineColor;
             block.SelectionOutline.enabled = false;
             block.EffectIconImage.sprite = RuleReconstructionIconFactory.Get(GetEffectIconKind(effect));
-            block.EffectIconImage.color = affectedTextColor;
             view.EffectBlockOutlines[effect] = block.SelectionOutline;
         }
 

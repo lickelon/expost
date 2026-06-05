@@ -22,7 +22,6 @@ namespace Expost.RuleReconstruction
             RectTransform boardRoot,
             Text resultBannerText,
             StageData stage,
-            Color cellColor,
             RuleReconstructionBoardCell cellPrefab)
         {
             resultBannerText.rectTransform.SetAsLastSibling();
@@ -56,9 +55,7 @@ namespace Expost.RuleReconstruction
                     var cell = existingCells[cellIndex];
                     cell.name = $"Cell{x}_{y}";
                     cell.gameObject.SetActive(true);
-                    cell.Background.color = cellColor;
                     cell.Label.text = string.Empty;
-                    cell.Label.fontSize = 21;
                     cells.Add(new BoardCellView(new GridPosition(x, y), cell.Background, cell.Label));
                     cellIndex++;
                 }

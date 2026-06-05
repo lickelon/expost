@@ -29,6 +29,16 @@ namespace Expost.RuleReconstruction
         [SerializeField] private RuleReconstructionBlockButton directionBlockPrefab;
         [SerializeField] private RuleReconstructionBlockButton rangeBlockPrefab;
         [SerializeField] private RuleReconstructionBlockButton effectBlockPrefab;
+        [SerializeField] private Color redSourceColor;
+        [SerializeField] private Color blueSourceColor;
+        [SerializeField] private Color greenSourceColor;
+        [SerializeField] private Color yellowSourceColor;
+        [SerializeField] private Color numberTextColor;
+        [SerializeField] private Color affectedTextColor;
+        [SerializeField] private Color wrongTextColor;
+        [SerializeField] private Color needMoreTextColor;
+        [SerializeField] private Color clearTextColor;
+        [SerializeField] private Color previewIdleColor;
 
         public Canvas Canvas => canvas;
         public RectTransform DynamicSidebarRoot => dynamicSidebarRoot;
@@ -53,6 +63,12 @@ namespace Expost.RuleReconstruction
         public RuleReconstructionBlockButton DirectionBlockPrefab => directionBlockPrefab;
         public RuleReconstructionBlockButton RangeBlockPrefab => rangeBlockPrefab;
         public RuleReconstructionBlockButton EffectBlockPrefab => effectBlockPrefab;
+        public Color NumberTextColor => numberTextColor;
+        public Color AffectedTextColor => affectedTextColor;
+        public Color WrongTextColor => wrongTextColor;
+        public Color NeedMoreTextColor => needMoreTextColor;
+        public Color ClearTextColor => clearTextColor;
+        public Color PreviewIdleColor => previewIdleColor;
 
         public bool HasRequiredReferences()
         {
@@ -81,26 +97,38 @@ namespace Expost.RuleReconstruction
                 && effectBlockPrefab != null;
         }
 
+        public Color GetSourceColor(BoxColor color)
+        {
+            return color switch
+            {
+                BoxColor.Red => redSourceColor,
+                BoxColor.Blue => blueSourceColor,
+                BoxColor.Green => greenSourceColor,
+                BoxColor.Yellow => yellowSourceColor,
+                _ => Color.white
+            };
+        }
+
         public void RefreshStaticButtonVisuals()
         {
             if (prevButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(prevButton, ButtonIconKind.Previous, 18f);
+                RuleReconstructionIconFactory.ApplyToButton(prevButton, ButtonIconKind.Previous);
             }
 
             if (nextButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(nextButton, ButtonIconKind.Next, 18f);
+                RuleReconstructionIconFactory.ApplyToButton(nextButton, ButtonIconKind.Next);
             }
 
             if (testButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(testButton, ButtonIconKind.Run, 22f);
+                RuleReconstructionIconFactory.ApplyToButton(testButton, ButtonIconKind.Run);
             }
 
             if (targetButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(targetButton, ButtonIconKind.Target, 22f);
+                RuleReconstructionIconFactory.ApplyToButton(targetButton, ButtonIconKind.Target);
             }
         }
 

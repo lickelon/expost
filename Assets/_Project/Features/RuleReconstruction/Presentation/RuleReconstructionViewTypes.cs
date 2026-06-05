@@ -9,12 +9,16 @@ namespace Expost.RuleReconstruction
         public readonly GridPosition Position;
         public readonly Image Background;
         public readonly Text Label;
+        public readonly Color DefaultBackgroundColor;
+        public readonly Color DefaultLabelColor;
 
         public BoardCellView(GridPosition position, Image background, Text label)
         {
             Position = position;
             Background = background;
             Label = label;
+            DefaultBackgroundColor = background != null ? background.color : Color.white;
+            DefaultLabelColor = label != null ? label.color : Color.white;
         }
     }
 

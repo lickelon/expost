@@ -12,9 +12,8 @@ namespace Expost.RuleReconstruction
             StageData currentStage,
             bool showMismatch,
             HashSet<GridPosition> activeAffectedCells,
-            Color cellColor,
-            Color numberTextColor,
             Color wrongTextColor,
+            Color needMoreTextColor,
             Color affectedTextColor,
             Func<BoxColor, Color> getSourceColor)
         {
@@ -30,10 +29,9 @@ namespace Expost.RuleReconstruction
                 var isWrong = showMismatch && !Validator.IsCellCorrect(cell, targetCell);
                 var isAffected = !cell.HasSource && activeAffectedCells.Contains(view.Position);
 
-                view.Background.color = cell.HasSource ? getSourceColor(cell.SourceColor) : cellColor;
+                view.Background.color = cell.HasSource ? getSourceColor(cell.SourceColor) : view.DefaultBackgroundColor;
                 view.Label.text = GetBoardCellLabel(cell, targetCell, isWrong);
-                view.Label.fontSize = 21;
-                view.Label.color = isWrong ? GetMismatchColor(cell, targetCell, wrongTextColor) : isAffected ? affectedTextColor : numberTextColor;
+                view.Label.color = isWrong ? GetMismatchColor(cell, targetCell, wrongTextColor, needMoreTextColor) : isAffected ? affectedTextColor : view.DefaultLabelColor;
             }
         }
 
@@ -53,9 +51,9 @@ namespace Expost.RuleReconstruction
             return difference > 0 ? $"+{difference}" : $"-{-difference}";
         }
 
-        private static Color GetMismatchColor(CellState cell, CellState targetCell, Color excessColor)
+        private static Color GetMismatchColor(CellState cell, CellState targetCell, Color excessColor, Color needMoreColor)
         {
-            return targetCell.Number > cell.Number ? new Color(1f, 0.86f, 0.20f) : excessColor;
+            return targetCell.Number > cell.Number ? needMoreColor : excessColor;
         }
     }
 }
