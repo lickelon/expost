@@ -4358,7 +4358,7 @@ GameObject:
   - component: {fileID: 674014728}
   - component: {fileID: 674014727}
   m_Layer: 0
-  m_Name: DirectionBlockRoot
+  m_Name: DirectionBlocksRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4371,7 +4371,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 674014725}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4381,7 +4381,7 @@ RectTransform:
   - {fileID: 227206281}
   - {fileID: 2029111334}
   - {fileID: 98199644}
-  m_Father: {fileID: 912948442}
+  m_Father: {fileID: 1030110834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -4577,7 +4577,7 @@ GameObject:
   - component: {fileID: 701891840}
   - component: {fileID: 701891839}
   m_Layer: 0
-  m_Name: RangeBlockRoot
+  m_Name: RangeBlocksRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4590,14 +4590,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 701891837}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1445447183}
   - {fileID: 1139199247}
-  m_Father: {fileID: 912948442}
+  m_Father: {fileID: 1030110834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -6212,9 +6212,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 834532891}
-  - {fileID: 674014726}
-  - {fileID: 701891838}
-  - {fileID: 1444099303}
+  - {fileID: 1030110834}
   - {fileID: 606736926}
   m_Father: {fileID: 373119203}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6367,6 +6365,44 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1249086270652656648, guid: db99ed3f4c07646a4a6732508920e607, type: 3}
   m_PrefabInstance: {fileID: 943902175}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1030110833
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1030110834}
+  m_Layer: 0
+  m_Name: BlockPaletteRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1030110834
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030110833}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 674014726}
+  - {fileID: 701891838}
+  - {fileID: 1444099303}
+  m_Father: {fileID: 912948442}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1001 &1100960283
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8620,7 +8656,7 @@ GameObject:
   - component: {fileID: 1444099305}
   - component: {fileID: 1444099304}
   m_Layer: 0
-  m_Name: EffectBlockRoot
+  m_Name: EffectBlocksRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -8633,14 +8669,14 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1444099302}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1654910644}
   - {fileID: 87741084}
-  m_Father: {fileID: 912948442}
+  m_Father: {fileID: 1030110834}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -10343,7 +10379,7 @@ GameObject:
   - component: {fileID: 1767736716}
   - component: {fileID: 1767736715}
   m_Layer: 0
-  m_Name: StageAnalysis
+  m_Name: SidebarFeedback
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
