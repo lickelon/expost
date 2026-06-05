@@ -15,7 +15,7 @@ namespace Expost.RuleReconstruction
         public void Rebuild(StageData stage)
         {
             boardCells.Clear();
-            var boardView = BoardBuilder.Build(view.BoardRoot, view.ResultBannerText, stage, view.BoardCellPrefab);
+            var boardView = BoardBuilder.Build(view.BoardCellRoot, view.ResultBannerText, stage, view.BoardCellPrefab);
             boardCells.AddRange(boardView.Cells);
         }
 

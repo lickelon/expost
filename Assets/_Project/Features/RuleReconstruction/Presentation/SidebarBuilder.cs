@@ -47,14 +47,14 @@ namespace Expost.RuleReconstruction
         }
 
         public SidebarView Build(
-            RectTransform ruleListRoot,
+            RectTransform ruleCardRoot,
             RectTransform directionBlockRoot,
             RectTransform rangeBlockRoot,
             RectTransform effectBlockRoot,
             IReadOnlyList<BoxColor> stageColors)
         {
             var view = new SidebarView();
-            var ruleCards = EnsureChildren(ruleListRoot, ruleCardPrefab, stageColors.Count);
+            var ruleCards = EnsureChildren(ruleCardRoot, ruleCardPrefab, stageColors.Count);
             for (var index = 0; index < stageColors.Count; index++)
             {
                 AddRuleControls(view, ruleCards[index], stageColors[index]);

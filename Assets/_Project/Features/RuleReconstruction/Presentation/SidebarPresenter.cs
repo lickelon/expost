@@ -41,7 +41,7 @@ namespace Expost.RuleReconstruction
                 view.DirectionBlockPrefab,
                 view.RangeBlockPrefab,
                 view.EffectBlockPrefab);
-            sidebarView = builder.Build(view.RuleListRoot, view.DirectionBlockRoot, view.RangeBlockRoot, view.EffectBlockRoot, stageColors);
+            sidebarView = builder.Build(view.RuleCardRoot, view.DirectionBlockRoot, view.RangeBlockRoot, view.EffectBlockRoot, stageColors);
         }
 
         public void Render()

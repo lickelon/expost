@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
@@ -7,10 +8,13 @@ namespace Expost.RuleReconstruction
     public sealed class GameView : MonoBehaviour
     {
         [SerializeField] private Canvas canvas;
-        [SerializeField] private RectTransform dynamicSidebarRoot;
+        [FormerlySerializedAs("dynamicSidebarRoot")]
+        [SerializeField] private RectTransform sidebarPanel;
         [SerializeField] private RectTransform boardPanel;
-        [SerializeField] private RectTransform boardRoot;
-        [SerializeField] private RectTransform ruleListRoot;
+        [FormerlySerializedAs("boardRoot")]
+        [SerializeField] private RectTransform boardCellRoot;
+        [FormerlySerializedAs("ruleListRoot")]
+        [SerializeField] private RectTransform ruleCardRoot;
         [SerializeField] private RectTransform directionBlockRoot;
         [SerializeField] private RectTransform rangeBlockRoot;
         [SerializeField] private RectTransform effectBlockRoot;
@@ -41,10 +45,10 @@ namespace Expost.RuleReconstruction
         [SerializeField] private Color previewIdleColor;
 
         public Canvas Canvas => canvas;
-        public RectTransform DynamicSidebarRoot => dynamicSidebarRoot;
+        public RectTransform SidebarPanel => sidebarPanel;
         public RectTransform BoardPanel => boardPanel;
-        public RectTransform BoardRoot => boardRoot;
-        public RectTransform RuleListRoot => ruleListRoot;
+        public RectTransform BoardCellRoot => boardCellRoot;
+        public RectTransform RuleCardRoot => ruleCardRoot;
         public RectTransform DirectionBlockRoot => directionBlockRoot;
         public RectTransform RangeBlockRoot => rangeBlockRoot;
         public RectTransform EffectBlockRoot => effectBlockRoot;
@@ -73,10 +77,10 @@ namespace Expost.RuleReconstruction
         public bool HasRequiredReferences()
         {
             return canvas != null
-                && dynamicSidebarRoot != null
+                && sidebarPanel != null
                 && boardPanel != null
-                && boardRoot != null
-                && ruleListRoot != null
+                && boardCellRoot != null
+                && ruleCardRoot != null
                 && directionBlockRoot != null
                 && rangeBlockRoot != null
                 && effectBlockRoot != null
@@ -134,10 +138,10 @@ namespace Expost.RuleReconstruction
 
         public void Bind(
             Canvas canvas,
-            RectTransform dynamicSidebarRoot,
+            RectTransform sidebarPanel,
             RectTransform boardPanel,
-            RectTransform boardRoot,
-            RectTransform ruleListRoot,
+            RectTransform boardCellRoot,
+            RectTransform ruleCardRoot,
             RectTransform directionBlockRoot,
             RectTransform rangeBlockRoot,
             RectTransform effectBlockRoot,
@@ -158,10 +162,10 @@ namespace Expost.RuleReconstruction
             BlockButton effectBlockPrefab)
         {
             this.canvas = canvas;
-            this.dynamicSidebarRoot = dynamicSidebarRoot;
+            this.sidebarPanel = sidebarPanel;
             this.boardPanel = boardPanel;
-            this.boardRoot = boardRoot;
-            this.ruleListRoot = ruleListRoot;
+            this.boardCellRoot = boardCellRoot;
+            this.ruleCardRoot = ruleCardRoot;
             this.directionBlockRoot = directionBlockRoot;
             this.rangeBlockRoot = rangeBlockRoot;
             this.effectBlockRoot = effectBlockRoot;

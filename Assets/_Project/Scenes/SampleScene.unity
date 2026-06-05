@@ -3235,7 +3235,7 @@ GameObject:
   m_Component:
   - component: {fileID: 373119203}
   m_Layer: 0
-  m_Name: ContentRoot
+  m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4836,7 +4836,7 @@ GameObject:
   - component: {fileID: 606736928}
   - component: {fileID: 606736927}
   m_Layer: 0
-  m_Name: SidebarActions
+  m_Name: ActionButtons
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5146,7 +5146,7 @@ GameObject:
   - component: {fileID: 674014728}
   - component: {fileID: 674014727}
   m_Layer: 0
-  m_Name: DirectionBlocksRoot
+  m_Name: DirectionBlocks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5393,7 +5393,7 @@ GameObject:
   - component: {fileID: 701891840}
   - component: {fileID: 701891839}
   m_Layer: 0
-  m_Name: RangeBlocksRoot
+  m_Name: RangeBlocks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6349,7 +6349,7 @@ GameObject:
   - component: {fileID: 834532893}
   - component: {fileID: 834532892}
   m_Layer: 0
-  m_Name: RuleSlotsRoot
+  m_Name: RuleCards
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7435,7 +7435,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1030110834}
   m_Layer: 0
-  m_Name: BlockPaletteRoot
+  m_Name: BlockPalette
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9043,10 +9043,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.GameView
   canvas: {fileID: 1268496027}
-  dynamicSidebarRoot: {fileID: 912948442}
+  sidebarPanel: {fileID: 912948442}
   boardPanel: {fileID: 1109664891}
-  boardRoot: {fileID: 2126926032}
-  ruleListRoot: {fileID: 834532891}
+  boardCellRoot: {fileID: 2126926032}
+  ruleCardRoot: {fileID: 834532891}
   directionBlockRoot: {fileID: 674014726}
   rangeBlockRoot: {fileID: 701891838}
   effectBlockRoot: {fileID: 1444099303}
@@ -9263,7 +9263,7 @@ GameObject:
   - component: {fileID: 1332768384}
   - component: {fileID: 1332768383}
   m_Layer: 0
-  m_Name: ScreenRoot
+  m_Name: Screen
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10140,7 +10140,7 @@ GameObject:
   - component: {fileID: 1444099305}
   - component: {fileID: 1444099304}
   m_Layer: 0
-  m_Name: EffectBlocksRoot
+  m_Name: EffectBlocks
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10554,7 +10554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1497075968}
   m_Layer: 0
-  m_Name: HeaderRoot
+  m_Name: Header
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -13203,7 +13203,7 @@ GameObject:
   - component: {fileID: 2126926034}
   - component: {fileID: 2126926033}
   m_Layer: 0
-  m_Name: BoardRoot
+  m_Name: BoardCells
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

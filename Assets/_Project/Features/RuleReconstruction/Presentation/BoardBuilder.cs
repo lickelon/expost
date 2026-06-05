@@ -19,7 +19,7 @@ namespace Expost.RuleReconstruction
     public static class BoardBuilder
     {
         public static BoardView Build(
-            RectTransform boardRoot,
+            RectTransform boardCellRoot,
             Text resultBannerText,
             StageData stage,
             BoardCell cellPrefab)
@@ -28,7 +28,7 @@ namespace Expost.RuleReconstruction
 
             var cells = new List<BoardCellView>();
             var existingCells = new List<BoardCell>();
-            foreach (Transform child in boardRoot)
+            foreach (Transform child in boardCellRoot)
             {
                 if (child.TryGetComponent<BoardCell>(out var existingCell))
                 {
@@ -39,7 +39,7 @@ namespace Expost.RuleReconstruction
             var requiredCount = stage.Width * stage.Height;
             while (existingCells.Count < requiredCount)
             {
-                existingCells.Add(Object.Instantiate(cellPrefab, boardRoot));
+                existingCells.Add(Object.Instantiate(cellPrefab, boardCellRoot));
             }
 
             for (var index = requiredCount; index < existingCells.Count; index++)
@@ -61,7 +61,7 @@ namespace Expost.RuleReconstruction
                 }
             }
 
-            return new BoardView(boardRoot, cells);
+            return new BoardView(boardCellRoot, cells);
         }
     }
 }
