@@ -2,7 +2,7 @@ using UnityEditor;
 
 namespace Expost.RuleReconstruction.Editor
 {
-    public static class RuleReconstructionSceneViewBuilder
+    public static class SceneViewBuilder
     {
         [MenuItem("GameObject/Rule Reconstruction/Game View", false, 10)]
         public static void CreateGameView()

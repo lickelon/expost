@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionRunController
+    public sealed class RunController
     {
         private readonly MonoBehaviour coroutineOwner;
-        private readonly RuleReconstructionSession session;
+        private readonly PuzzleSession session;
 
         private Coroutine runRoutine;
 
-        public RuleReconstructionRunController(MonoBehaviour coroutineOwner, RuleReconstructionSession session)
+        public RunController(MonoBehaviour coroutineOwner, PuzzleSession session)
         {
             this.coroutineOwner = coroutineOwner;
             this.session = session;

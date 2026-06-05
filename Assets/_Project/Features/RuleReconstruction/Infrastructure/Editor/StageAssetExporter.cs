@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Expost.RuleReconstruction.Editor
 {
-    public static class RuleReconstructionStageAssetExporter
+    public static class StageAssetExporter
     {
         private const string OutputFolder = "Assets/_Project/Resources/Stages";
 

@@ -224,7 +224,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 462302df298594e46afaad75f21bd2e0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionBlockButton
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.BlockButton
   button: {fileID: 8945345260769085202}
   selectionOutline: {fileID: 3189851733957908683}
   directionPreview: {fileID: 0}

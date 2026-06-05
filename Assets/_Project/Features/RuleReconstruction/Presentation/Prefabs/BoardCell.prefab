@@ -183,6 +183,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6525dfb6a24ae4a2abce2fb1e629df6b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionBoardCell
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.BoardCell
   background: {fileID: 3284770461258957058}
   label: {fileID: 6541944735503651674}

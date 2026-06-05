@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionIconFactory
+    public static class IconFactory
     {
         private static readonly Dictionary<ButtonIconKind, Sprite> Sprites = new();
 

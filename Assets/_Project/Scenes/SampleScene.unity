@@ -3395,7 +3395,7 @@ GameObject:
   - component: {fileID: 403236432}
   - component: {fileID: 403236431}
   m_Layer: 0
-  m_Name: Rule Reconstruction Systems
+  m_Name: Systems
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3412,7 +3412,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d73d6f8e20bdf4e658d82f3f78d90d4f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionGame
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.GameController
   view: {fileID: 1268496022}
 --- !u!4 &403236432
 Transform:
@@ -9004,7 +9004,7 @@ GameObject:
   - component: {fileID: 1268496023}
   - component: {fileID: 1268496022}
   m_Layer: 0
-  m_Name: Rule Reconstruction UI Canvas
+  m_Name: UI Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9041,7 +9041,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10455462472f94a9c8ad6150903b92c7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionView
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.GameView
   canvas: {fileID: 1268496027}
   dynamicSidebarRoot: {fileID: 912948442}
   boardPanel: {fileID: 1109664891}

@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Expost.RuleReconstruction.Tests
 {
-    public sealed class RuleReconstructionSessionTests
+    public sealed class PuzzleSessionTests
     {
         private static readonly BoxColor[] TestColors =
         {
@@ -17,7 +17,7 @@ namespace Expost.RuleReconstruction.Tests
         public void ApplyNextSource_AdvancesSimulationAndUpdatesValidation()
         {
             var stage = CreateSingleSourceStage("Single Source");
-            var session = new RuleReconstructionSession(new List<StageData> { stage }, TestColors);
+            var session = new PuzzleSession(new List<StageData> { stage }, TestColors);
 
             Assert.That(session.AppliedSourceCount, Is.EqualTo(0));
             Assert.That(session.IsComplete, Is.False);
@@ -34,7 +34,7 @@ namespace Expost.RuleReconstruction.Tests
         public void CycleDirection_ChangesRuleAndResetsSimulation()
         {
             var stage = CreateSingleSourceStage("Single Source");
-            var session = new RuleReconstructionSession(new List<StageData> { stage }, TestColors);
+            var session = new PuzzleSession(new List<StageData> { stage }, TestColors);
             session.ApplyNextSource();
 
             session.CycleDirection(BoxColor.Red);
@@ -49,7 +49,7 @@ namespace Expost.RuleReconstruction.Tests
         {
             var first = CreateSingleSourceStage("01 First");
             var second = CreateSingleSourceStage("02 Second");
-            var session = new RuleReconstructionSession(new List<StageData> { first, second }, TestColors);
+            var session = new PuzzleSession(new List<StageData> { first, second }, TestColors);
             session.ApplyNextSource();
 
             session.MoveStage(1);
@@ -75,7 +75,7 @@ namespace Expost.RuleReconstruction.Tests
         {
             var first = CreateSingleSourceStage("01 First");
             var second = CreateSingleSourceStage("02 Second");
-            var session = new RuleReconstructionSession(new List<StageData> { first, second }, TestColors);
+            var session = new PuzzleSession(new List<StageData> { first, second }, TestColors);
 
             Assert.That(session.IsCurrentStageCleared, Is.False);
 

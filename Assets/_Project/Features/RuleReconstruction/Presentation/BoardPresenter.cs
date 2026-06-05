@@ -2,12 +2,12 @@ using System.Collections.Generic;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionBoardPresenter
+    public sealed class BoardPresenter
     {
-        private readonly RuleReconstructionView view;
+        private readonly GameView view;
         private readonly List<BoardCellView> boardCells = new();
 
-        public RuleReconstructionBoardPresenter(RuleReconstructionView view)
+        public BoardPresenter(GameView view)
         {
             this.view = view;
         }
@@ -15,13 +15,13 @@ namespace Expost.RuleReconstruction
         public void Rebuild(StageData stage)
         {
             boardCells.Clear();
-            var boardView = RuleReconstructionBoardBuilder.Build(view.BoardRoot, view.ResultBannerText, stage, view.BoardCellPrefab);
+            var boardView = BoardBuilder.Build(view.BoardRoot, view.ResultBannerText, stage, view.BoardCellPrefab);
             boardCells.AddRange(boardView.Cells);
         }
 
         public void Render(BoardState displayBoard, StageData currentStage, bool showMismatch, HashSet<GridPosition> activeAffectedCells)
         {
-            RuleReconstructionBoardRenderer.Render(
+            BoardRenderer.Render(
                 boardCells,
                 displayBoard,
                 currentStage,

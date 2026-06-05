@@ -4,16 +4,16 @@ using UnityEngine;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionSidebarPresenter
+    public sealed class SidebarPresenter
     {
-        private readonly RuleReconstructionView view;
-        private readonly RuleReconstructionSession session;
+        private readonly GameView view;
+        private readonly PuzzleSession session;
         private readonly Action resetAttemptState;
 
-        private RuleReconstructionSidebarView sidebarView;
+        private SidebarView sidebarView;
         private BoxColor selectedRuleColor;
 
-        public RuleReconstructionSidebarPresenter(RuleReconstructionView view, RuleReconstructionSession session, Action resetAttemptState)
+        public SidebarPresenter(GameView view, PuzzleSession session, Action resetAttemptState)
         {
             this.view = view;
             this.session = session;
@@ -29,7 +29,7 @@ namespace Expost.RuleReconstruction
                 selectedRuleColor = stageColors[0];
             }
 
-            var builder = new RuleReconstructionSidebarBuilder(
+            var builder = new SidebarBuilder(
                 view.GetSourceColor,
                 SelectRuleColor,
                 ApplyDirectionBlock,
@@ -87,8 +87,8 @@ namespace Expost.RuleReconstruction
                 sidebarView.RulePanelOutlines[color].enabled = false;
                 sidebarView.RuleSelectionIndicators[color].color = view.GetSourceColor(color);
                 sidebarView.RuleSelectionIndicators[color].enabled = isSelected;
-                RuleReconstructionSidebarBuilder.UpdateRangeIcon(sidebarView.RangeIconViews[color], session.GetRange(color));
-                sidebarView.EffectIconImages[color].sprite = RuleReconstructionIconFactory.Get(RuleReconstructionSidebarBuilder.GetEffectIconKind(session.GetEffect(color)));
+                SidebarBuilder.UpdateRangeIcon(sidebarView.RangeIconViews[color], session.GetRange(color));
+                sidebarView.EffectIconImages[color].sprite = IconFactory.Get(SidebarBuilder.GetEffectIconKind(session.GetEffect(color)));
             }
 
             UpdateBlockSelection();
@@ -133,7 +133,7 @@ namespace Expost.RuleReconstruction
                 sidebarView.SourceSlotImages[color].color = view.GetSourceColor(color);
 
                 var preview = sidebarView.PreviewViews[color];
-                var affected = RuleReconstructionPreviewPattern.GetAffectedCells(session.GetDirection(color));
+                var affected = PreviewPattern.GetAffectedCells(session.GetDirection(color));
 
                 for (var index = 0; index < preview.Cells.Count; index++)
                 {

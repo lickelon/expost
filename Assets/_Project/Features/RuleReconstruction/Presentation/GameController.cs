@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
-    [AddComponentMenu("Rule Reconstruction/Rule Reconstruction Game")]
-    public sealed class RuleReconstructionGame : MonoBehaviour
+    [AddComponentMenu("Rule Reconstruction/Game Controller")]
+    public sealed class GameController : MonoBehaviour
     {
         private static readonly BoxColor[] AllColors =
         {
@@ -14,14 +14,14 @@ namespace Expost.RuleReconstruction
             BoxColor.Yellow
         };
 
-        [SerializeField] private RuleReconstructionView view;
+        [SerializeField] private GameView view;
 
-        private RuleReconstructionSession session;
-        private RuleReconstructionRunController runController;
-        private RuleReconstructionStagePresenter stagePresenter;
-        private RuleReconstructionSidebarPresenter sidebarPresenter;
-        private RuleReconstructionBoardPresenter boardPresenter;
-        private RuleReconstructionResultPresenter resultPresenter;
+        private PuzzleSession session;
+        private RunController runController;
+        private StagePresenter stagePresenter;
+        private SidebarPresenter sidebarPresenter;
+        private BoardPresenter boardPresenter;
+        private ResultPresenter resultPresenter;
 
         private void Awake()
         {
@@ -51,16 +51,16 @@ namespace Expost.RuleReconstruction
 
             if (!TryBindSceneView())
             {
-                Debug.LogError("RuleReconstructionGame requires scene-defined RuleReconstructionView references.", this);
+                Debug.LogError("GameController requires scene-defined GameView references.", this);
                 return;
             }
 
-            session = new RuleReconstructionSession(StageRepository.LoadStages(), AllColors);
-            runController = new RuleReconstructionRunController(this, session);
-            stagePresenter = new RuleReconstructionStagePresenter(view, session, runController, MoveStage, runController.StartRun, runController.ShowTarget);
-            sidebarPresenter = new RuleReconstructionSidebarPresenter(view, session, runController.ResetAttemptState);
-            boardPresenter = new RuleReconstructionBoardPresenter(view);
-            resultPresenter = new RuleReconstructionResultPresenter(view);
+            session = new PuzzleSession(StageRepository.LoadStages(), AllColors);
+            runController = new RunController(this, session);
+            stagePresenter = new StagePresenter(view, session, runController, MoveStage, runController.StartRun, runController.ShowTarget);
+            sidebarPresenter = new SidebarPresenter(view, session, runController.ResetAttemptState);
+            boardPresenter = new BoardPresenter(view);
+            resultPresenter = new ResultPresenter(view);
 
             sidebarPresenter.Rebuild();
             boardPresenter.Rebuild(session.CurrentStage);
@@ -71,12 +71,12 @@ namespace Expost.RuleReconstruction
         {
             if (view == null)
             {
-                view = GetComponentInChildren<RuleReconstructionView>(true);
+                view = GetComponentInChildren<GameView>(true);
             }
 
             if (view == null)
             {
-                view = FindFirstObjectByType<RuleReconstructionView>(FindObjectsInactive.Include);
+                view = FindFirstObjectByType<GameView>(FindObjectsInactive.Include);
             }
 
             return view != null && view.HasRequiredReferences();

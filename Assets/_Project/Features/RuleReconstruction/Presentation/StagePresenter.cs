@@ -4,16 +4,16 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionStagePresenter
+    public sealed class StagePresenter
     {
-        private readonly RuleReconstructionView view;
-        private readonly RuleReconstructionSession session;
-        private readonly RuleReconstructionRunController runController;
+        private readonly GameView view;
+        private readonly PuzzleSession session;
+        private readonly RunController runController;
 
-        public RuleReconstructionStagePresenter(
-            RuleReconstructionView view,
-            RuleReconstructionSession session,
-            RuleReconstructionRunController runController,
+        public StagePresenter(
+            GameView view,
+            PuzzleSession session,
+            RunController runController,
             Action<int> moveStage,
             Action startRun,
             Action showTarget)
@@ -49,10 +49,10 @@ namespace Expost.RuleReconstruction
 
         private void UpdateNavigationButtons()
         {
-            RuleReconstructionIconFactory.ApplyToButton(view.PrevButton, ButtonIconKind.Previous);
+            IconFactory.ApplyToButton(view.PrevButton, ButtonIconKind.Previous);
             view.PrevButton.interactable = !runController.IsRunning && !session.IsFirstStage;
 
-            RuleReconstructionIconFactory.ApplyToButton(view.NextButton, ButtonIconKind.Next);
+            IconFactory.ApplyToButton(view.NextButton, ButtonIconKind.Next);
             view.NextButton.interactable = !runController.IsRunning && session.IsCurrentStageCleared && !session.IsLastStage;
         }
 

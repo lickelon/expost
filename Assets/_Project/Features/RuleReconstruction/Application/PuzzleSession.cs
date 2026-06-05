@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionSession
+    public sealed class PuzzleSession
     {
         private static readonly DirectionType[] DirectionOptions =
         {
@@ -32,7 +32,7 @@ namespace Expost.RuleReconstruction
         private readonly HashSet<int> clearedStageIndices = new();
         private int stageIndex;
 
-        public RuleReconstructionSession(List<StageData> stages, IReadOnlyList<BoxColor> colors)
+        public PuzzleSession(List<StageData> stages, IReadOnlyList<BoxColor> colors)
         {
             this.stages = stages;
 

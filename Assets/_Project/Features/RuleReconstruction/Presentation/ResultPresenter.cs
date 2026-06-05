@@ -1,10 +1,10 @@
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionResultPresenter
+    public sealed class ResultPresenter
     {
-        private readonly RuleReconstructionView view;
+        private readonly GameView view;
 
-        public RuleReconstructionResultPresenter(RuleReconstructionView view)
+        public ResultPresenter(GameView view)
         {
             this.view = view;
         }

@@ -5,15 +5,15 @@ namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Button))]
-    public sealed class RuleReconstructionRuleCard : MonoBehaviour
+    public sealed class RuleCard : MonoBehaviour
     {
         [SerializeField] private Button button;
         [SerializeField] private Image panelImage;
         [SerializeField] private Outline panelOutline;
         [SerializeField] private Image selectionIndicator;
         [SerializeField] private Image sourceSlotImage;
-        [SerializeField] private RuleReconstructionRulePreview directionPreview;
-        [SerializeField] private RuleReconstructionRangeIcon rangeIcon;
+        [SerializeField] private RulePreview directionPreview;
+        [SerializeField] private RangeIcon rangeIcon;
         [SerializeField] private Image effectIconImage;
 
         public Button Button => button;
@@ -31,8 +31,8 @@ namespace Expost.RuleReconstruction
             Outline panelOutline,
             Image selectionIndicator,
             Image sourceSlotImage,
-            RuleReconstructionRulePreview directionPreview,
-            RuleReconstructionRangeIcon rangeIcon,
+            RulePreview directionPreview,
+            RangeIcon rangeIcon,
             Image effectIconImage)
         {
             this.button = button;

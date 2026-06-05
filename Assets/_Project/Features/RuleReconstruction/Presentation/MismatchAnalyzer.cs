@@ -1,6 +1,6 @@
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionMismatchAnalyzer
+    public static class MismatchAnalyzer
     {
         public static MismatchSummary GetSummary(BoardState resultBoard, BoardState targetBoard)
         {

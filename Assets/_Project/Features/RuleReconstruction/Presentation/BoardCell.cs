@@ -6,7 +6,7 @@ namespace Expost.RuleReconstruction
     [DisallowMultipleComponent]
     [RequireComponent(typeof(RectTransform))]
     [RequireComponent(typeof(Image))]
-    public sealed class RuleReconstructionBoardCell : MonoBehaviour
+    public sealed class BoardCell : MonoBehaviour
     {
         [SerializeField] private Image background;
         [SerializeField] private Text label;

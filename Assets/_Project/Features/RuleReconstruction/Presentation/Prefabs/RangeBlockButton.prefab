@@ -467,7 +467,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24dfa90325a8d4c1cbe8ae75e9652e9f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionRangeIcon
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RangeIcon
   center: {fileID: 7757576959650992129}
   dots:
   - {fileID: 4099939664358649363}
@@ -623,7 +623,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 462302df298594e46afaad75f21bd2e0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionBlockButton
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.BlockButton
   button: {fileID: 3657074724000239597}
   selectionOutline: {fileID: 1588455818797760081}
   directionPreview: {fileID: 0}

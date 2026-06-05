@@ -4,33 +4,33 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public readonly struct RuleReconstructionBoardView
+    public readonly struct BoardView
     {
         public readonly RectTransform Root;
         public readonly List<BoardCellView> Cells;
 
-        public RuleReconstructionBoardView(RectTransform root, List<BoardCellView> cells)
+        public BoardView(RectTransform root, List<BoardCellView> cells)
         {
             Root = root;
             Cells = cells;
         }
     }
 
-    public static class RuleReconstructionBoardBuilder
+    public static class BoardBuilder
     {
-        public static RuleReconstructionBoardView Build(
+        public static BoardView Build(
             RectTransform boardRoot,
             Text resultBannerText,
             StageData stage,
-            RuleReconstructionBoardCell cellPrefab)
+            BoardCell cellPrefab)
         {
             resultBannerText.rectTransform.SetAsLastSibling();
 
             var cells = new List<BoardCellView>();
-            var existingCells = new List<RuleReconstructionBoardCell>();
+            var existingCells = new List<BoardCell>();
             foreach (Transform child in boardRoot)
             {
-                if (child.TryGetComponent<RuleReconstructionBoardCell>(out var existingCell))
+                if (child.TryGetComponent<BoardCell>(out var existingCell))
                 {
                     existingCells.Add(existingCell);
                 }
@@ -61,7 +61,7 @@ namespace Expost.RuleReconstruction
                 }
             }
 
-            return new RuleReconstructionBoardView(boardRoot, cells);
+            return new BoardView(boardRoot, cells);
         }
     }
 }

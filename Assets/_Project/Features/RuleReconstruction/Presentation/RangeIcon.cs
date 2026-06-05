@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
-    public sealed class RuleReconstructionRangeIcon : MonoBehaviour
+    public sealed class RangeIcon : MonoBehaviour
     {
         [SerializeField] private RectTransform center;
         [SerializeField] private List<RectTransform> dots = new();

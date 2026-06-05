@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionPreviewPattern
+    public static class PreviewPattern
     {
         public static HashSet<int> GetAffectedCells(DirectionType direction)
         {

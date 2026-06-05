@@ -196,7 +196,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f31909dc80284e868c0f8a3ef5eb534, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionRulePreview
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RulePreview
   cells:
   - {fileID: 3278862018175804316}
   - {fileID: 5846390429519578184}
@@ -806,7 +806,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 462302df298594e46afaad75f21bd2e0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionBlockButton
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.BlockButton
   button: {fileID: 8497682421492534971}
   selectionOutline: {fileID: 5433557433311188168}
   directionPreview: {fileID: 8049612675630373180}

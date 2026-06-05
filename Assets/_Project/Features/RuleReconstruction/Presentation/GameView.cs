@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
-    public sealed class RuleReconstructionView : MonoBehaviour
+    public sealed class GameView : MonoBehaviour
     {
         [SerializeField] private Canvas canvas;
         [SerializeField] private RectTransform dynamicSidebarRoot;
@@ -24,11 +24,11 @@ namespace Expost.RuleReconstruction
         [SerializeField] private Button nextButton;
         [SerializeField] private Button testButton;
         [SerializeField] private Button targetButton;
-        [SerializeField] private RuleReconstructionBoardCell boardCellPrefab;
-        [SerializeField] private RuleReconstructionRuleCard ruleCardPrefab;
-        [SerializeField] private RuleReconstructionBlockButton directionBlockPrefab;
-        [SerializeField] private RuleReconstructionBlockButton rangeBlockPrefab;
-        [SerializeField] private RuleReconstructionBlockButton effectBlockPrefab;
+        [SerializeField] private BoardCell boardCellPrefab;
+        [SerializeField] private RuleCard ruleCardPrefab;
+        [SerializeField] private BlockButton directionBlockPrefab;
+        [SerializeField] private BlockButton rangeBlockPrefab;
+        [SerializeField] private BlockButton effectBlockPrefab;
         [SerializeField] private Color redSourceColor;
         [SerializeField] private Color blueSourceColor;
         [SerializeField] private Color greenSourceColor;
@@ -58,11 +58,11 @@ namespace Expost.RuleReconstruction
         public Button NextButton => nextButton;
         public Button TestButton => testButton;
         public Button TargetButton => targetButton;
-        public RuleReconstructionBoardCell BoardCellPrefab => boardCellPrefab;
-        public RuleReconstructionRuleCard RuleCardPrefab => ruleCardPrefab;
-        public RuleReconstructionBlockButton DirectionBlockPrefab => directionBlockPrefab;
-        public RuleReconstructionBlockButton RangeBlockPrefab => rangeBlockPrefab;
-        public RuleReconstructionBlockButton EffectBlockPrefab => effectBlockPrefab;
+        public BoardCell BoardCellPrefab => boardCellPrefab;
+        public RuleCard RuleCardPrefab => ruleCardPrefab;
+        public BlockButton DirectionBlockPrefab => directionBlockPrefab;
+        public BlockButton RangeBlockPrefab => rangeBlockPrefab;
+        public BlockButton EffectBlockPrefab => effectBlockPrefab;
         public Color NumberTextColor => numberTextColor;
         public Color AffectedTextColor => affectedTextColor;
         public Color WrongTextColor => wrongTextColor;
@@ -113,22 +113,22 @@ namespace Expost.RuleReconstruction
         {
             if (prevButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(prevButton, ButtonIconKind.Previous);
+                IconFactory.ApplyToButton(prevButton, ButtonIconKind.Previous);
             }
 
             if (nextButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(nextButton, ButtonIconKind.Next);
+                IconFactory.ApplyToButton(nextButton, ButtonIconKind.Next);
             }
 
             if (testButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(testButton, ButtonIconKind.Run);
+                IconFactory.ApplyToButton(testButton, ButtonIconKind.Run);
             }
 
             if (targetButton != null)
             {
-                RuleReconstructionIconFactory.ApplyToButton(targetButton, ButtonIconKind.Target);
+                IconFactory.ApplyToButton(targetButton, ButtonIconKind.Target);
             }
         }
 
@@ -151,11 +151,11 @@ namespace Expost.RuleReconstruction
             Button nextButton,
             Button testButton,
             Button targetButton,
-            RuleReconstructionBoardCell boardCellPrefab,
-            RuleReconstructionRuleCard ruleCardPrefab,
-            RuleReconstructionBlockButton directionBlockPrefab,
-            RuleReconstructionBlockButton rangeBlockPrefab,
-            RuleReconstructionBlockButton effectBlockPrefab)
+            BoardCell boardCellPrefab,
+            RuleCard ruleCardPrefab,
+            BlockButton directionBlockPrefab,
+            BlockButton rangeBlockPrefab,
+            BlockButton effectBlockPrefab)
         {
             this.canvas = canvas;
             this.dynamicSidebarRoot = dynamicSidebarRoot;

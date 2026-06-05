@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionSidebarView
+    public sealed class SidebarView
     {
         public readonly Dictionary<BoxColor, Image> SourceSlotImages = new();
         public readonly Dictionary<BoxColor, RulePreviewView> PreviewViews = new();

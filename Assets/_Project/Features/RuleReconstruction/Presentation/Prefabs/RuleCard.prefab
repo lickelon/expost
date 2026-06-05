@@ -815,7 +815,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 567889d277d294dd18bde31c51d1a950, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionRuleCard
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleCard
   button: {fileID: 6069250364792692320}
   panelImage: {fileID: 7460971221138385554}
   panelOutline: {fileID: 6689585483967698620}
@@ -1203,7 +1203,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 24dfa90325a8d4c1cbe8ae75e9652e9f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionRangeIcon
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RangeIcon
   center: {fileID: 7711618399745820850}
   dots:
   - {fileID: 3722864274918069081}
@@ -1481,7 +1481,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f31909dc80284e868c0f8a3ef5eb534, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RuleReconstructionRulePreview
+  m_EditorClassIdentifier: Assembly-CSharp::Expost.RuleReconstruction.RulePreview
   cells:
   - {fileID: 120455826200183637}
   - {fileID: 7069104253701219109}

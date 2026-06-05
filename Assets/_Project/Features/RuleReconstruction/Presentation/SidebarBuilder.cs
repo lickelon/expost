@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public sealed class RuleReconstructionSidebarBuilder
+    public sealed class SidebarBuilder
     {
         private readonly Func<BoxColor, Color> getSourceColor;
         private readonly UnityAction<BoxColor> selectRuleColor;
@@ -15,12 +15,12 @@ namespace Expost.RuleReconstruction
         private readonly UnityAction<EffectType> applyEffect;
         private readonly Color affectedTextColor;
         private readonly Color previewIdleColor;
-        private readonly RuleReconstructionRuleCard ruleCardPrefab;
-        private readonly RuleReconstructionBlockButton directionBlockPrefab;
-        private readonly RuleReconstructionBlockButton rangeBlockPrefab;
-        private readonly RuleReconstructionBlockButton effectBlockPrefab;
+        private readonly RuleCard ruleCardPrefab;
+        private readonly BlockButton directionBlockPrefab;
+        private readonly BlockButton rangeBlockPrefab;
+        private readonly BlockButton effectBlockPrefab;
 
-        public RuleReconstructionSidebarBuilder(
+        public SidebarBuilder(
             Func<BoxColor, Color> getSourceColor,
             UnityAction<BoxColor> selectRuleColor,
             UnityAction<DirectionType> applyDirection,
@@ -28,10 +28,10 @@ namespace Expost.RuleReconstruction
             UnityAction<EffectType> applyEffect,
             Color affectedTextColor,
             Color previewIdleColor,
-            RuleReconstructionRuleCard ruleCardPrefab,
-            RuleReconstructionBlockButton directionBlockPrefab,
-            RuleReconstructionBlockButton rangeBlockPrefab,
-            RuleReconstructionBlockButton effectBlockPrefab)
+            RuleCard ruleCardPrefab,
+            BlockButton directionBlockPrefab,
+            BlockButton rangeBlockPrefab,
+            BlockButton effectBlockPrefab)
         {
             this.getSourceColor = getSourceColor;
             this.selectRuleColor = selectRuleColor;
@@ -46,14 +46,14 @@ namespace Expost.RuleReconstruction
             this.effectBlockPrefab = effectBlockPrefab;
         }
 
-        public RuleReconstructionSidebarView Build(
+        public SidebarView Build(
             RectTransform ruleListRoot,
             RectTransform directionBlockRoot,
             RectTransform rangeBlockRoot,
             RectTransform effectBlockRoot,
             IReadOnlyList<BoxColor> stageColors)
         {
-            var view = new RuleReconstructionSidebarView();
+            var view = new SidebarView();
             var ruleCards = EnsureChildren(ruleListRoot, ruleCardPrefab, stageColors.Count);
             for (var index = 0; index < stageColors.Count; index++)
             {
@@ -116,7 +116,7 @@ namespace Expost.RuleReconstruction
             return children;
         }
 
-        private void AddRuleControls(RuleReconstructionSidebarView view, RuleReconstructionRuleCard card, BoxColor color)
+        private void AddRuleControls(SidebarView view, RuleCard card, BoxColor color)
         {
             card.name = $"{color}RuleCard";
             card.Button.onClick.RemoveAllListeners();
@@ -125,7 +125,7 @@ namespace Expost.RuleReconstruction
             card.SelectionIndicator.color = getSourceColor(color);
             card.SelectionIndicator.enabled = false;
             card.SourceSlotImage.color = getSourceColor(color);
-            card.EffectIconImage.sprite = RuleReconstructionIconFactory.Get(ButtonIconKind.Plus);
+            card.EffectIconImage.sprite = IconFactory.Get(ButtonIconKind.Plus);
 
             view.RulePanelImages[color] = card.PanelImage;
             view.RulePanelOutlines[color] = card.PanelOutline;
@@ -136,7 +136,7 @@ namespace Expost.RuleReconstruction
             view.EffectIconImages[color] = card.EffectIconImage;
         }
 
-        private void AddDirectionBlockButton(RuleReconstructionSidebarView view, RuleReconstructionBlockButton block, DirectionType direction)
+        private void AddDirectionBlockButton(SidebarView view, BlockButton block, DirectionType direction)
         {
             block.name = $"Block{direction}";
             block.Button.onClick.RemoveAllListeners();
@@ -145,7 +145,7 @@ namespace Expost.RuleReconstruction
             view.DirectionBlockOutlines[direction] = block.SelectionOutline;
             view.DirectionBlockPreviews[direction] = block.DirectionPreview.ToView();
 
-            var affected = RuleReconstructionPreviewPattern.GetAffectedCells(direction);
+            var affected = PreviewPattern.GetAffectedCells(direction);
             var cells = block.DirectionPreview.Cells;
             for (var index = 0; index < cells.Count; index++)
             {
@@ -153,7 +153,7 @@ namespace Expost.RuleReconstruction
             }
         }
 
-        private void AddRangeBlockButton(RuleReconstructionSidebarView view, RuleReconstructionBlockButton block, RangeType range)
+        private void AddRangeBlockButton(SidebarView view, BlockButton block, RangeType range)
         {
             block.name = $"Block{range}";
             block.Button.onClick.RemoveAllListeners();
@@ -163,23 +163,23 @@ namespace Expost.RuleReconstruction
             UpdateRangeIcon(block.RangeIcon.ToView(), range);
         }
 
-        private void AddEffectBlockButton(RuleReconstructionSidebarView view, RuleReconstructionBlockButton block, EffectType effect)
+        private void AddEffectBlockButton(SidebarView view, BlockButton block, EffectType effect)
         {
             block.name = $"Block{effect}";
             block.Button.onClick.RemoveAllListeners();
             block.Button.onClick.AddListener(() => applyEffect(effect));
             block.SelectionOutline.enabled = false;
-            block.EffectIconImage.sprite = RuleReconstructionIconFactory.Get(GetEffectIconKind(effect));
+            block.EffectIconImage.sprite = IconFactory.Get(GetEffectIconKind(effect));
             view.EffectBlockOutlines[effect] = block.SelectionOutline;
         }
 
         public static void UpdateRangeIcon(RangeIconView icon, RangeType range)
         {
             var radius = range == RangeType.One ? 8f : 13f;
-            RuleReconstructionUiFactory.Anchor(icon.Dots[0], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, radius - 3f), new Vector2(3f, radius + 3f));
-            RuleReconstructionUiFactory.Anchor(icon.Dots[1], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(radius - 3f, -3f), new Vector2(radius + 3f, 3f));
-            RuleReconstructionUiFactory.Anchor(icon.Dots[2], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -radius - 3f), new Vector2(3f, -radius + 3f));
-            RuleReconstructionUiFactory.Anchor(icon.Dots[3], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-radius - 3f, -3f), new Vector2(-radius + 3f, 3f));
+            UiFactory.Anchor(icon.Dots[0], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, radius - 3f), new Vector2(3f, radius + 3f));
+            UiFactory.Anchor(icon.Dots[1], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(radius - 3f, -3f), new Vector2(radius + 3f, 3f));
+            UiFactory.Anchor(icon.Dots[2], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-3f, -radius - 3f), new Vector2(3f, -radius + 3f));
+            UiFactory.Anchor(icon.Dots[3], new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-radius - 3f, -3f), new Vector2(-radius + 3f, 3f));
         }
 
         public static ButtonIconKind GetEffectIconKind(EffectType effect)

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionBoardRenderer
+    public static class BoardRenderer
     {
         public static void Render(
             IReadOnlyList<BoardCellView> boardCells,

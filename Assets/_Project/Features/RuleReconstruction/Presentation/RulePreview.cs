@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace Expost.RuleReconstruction
 {
     [DisallowMultipleComponent]
-    public sealed class RuleReconstructionRulePreview : MonoBehaviour
+    public sealed class RulePreview : MonoBehaviour
     {
         [SerializeField] private List<Image> cells = new();
 

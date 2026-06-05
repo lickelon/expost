@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionBootstrap
+    public static class GameBootstrap
     {
     }
 }

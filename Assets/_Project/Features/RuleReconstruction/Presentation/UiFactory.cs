@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace Expost.RuleReconstruction
 {
-    public static class RuleReconstructionUiFactory
+    public static class UiFactory
     {
         public static void Stretch(RectTransform rectTransform, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
